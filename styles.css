@@ -2,7 +2,7 @@ body, html {
     margin: 0;
     padding: 0;
     overflow: hidden;
-    background-color: #212529;
+    background-color: #212529; /* Dark retro background */
 }
 
 #game-container {
@@ -28,8 +28,9 @@ body, html {
     position: absolute;
     top: 10px;
     left: 10px;
-    color: white;
+    color: #00ffff; /* Neon cyan for retro flair */
     font-size: 24px;
+    text-shadow: 2px 2px #000000; /* Shadow for readability */
 }
 
 #start-menu, #game-over {
