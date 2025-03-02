@@ -3,7 +3,7 @@ const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('game-canvas') });
 renderer.setSize(window.innerWidth, window.innerHeight);
-camera.position.set(0, 10, 0);
+camera.position.set(0, 10, 10); // Better 3D perspective
 camera.lookAt(0, 0, 0);
 
 // Lighting
@@ -21,7 +21,7 @@ ground.rotation.x = -Math.PI / 2;
 scene.add(ground);
 
 // Grid to World Coordinates
-const gridToWorld = (x, z) => new THREE.Vector3(x - 9.5, 0, z - 9.5);
+const gridToWorld = (x, z) => new THREE.Vector3(x - 9.5, 0.4, z - 9.5); // y=0.4 for visibility
 
 // Snake Class
 const snakeGeometry = new THREE.BoxGeometry(0.8, 0.8, 0.8);
@@ -87,7 +87,7 @@ const food = new Food(scene);
 const obstacles = [[9, 9], [9, 10], [10, 9], [10, 10]];
 let score = 0;
 let lastMoveTime = 0;
-let moveInterval = 200;
+let moveInterval = 150; // Smoother default speed
 let speedBoostEndTime = 0;
 
 // Input Handling
@@ -106,34 +106,42 @@ document.addEventListener('keydown', (event) => {
     }
 });
 
+// Window Resize Handling
+window.addEventListener('resize', () => {
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    renderer.setSize(width, height);
+    camera.aspect = width / height;
+    camera.updateProjectionMatrix();
+});
+
 // Game Loop
 function gameLoop(currentTime) {
     requestAnimationFrame(gameLoop);
 
-    // Update Speed
-    moveInterval = currentTime < speedBoostEndTime ? 100 : 200;
+    // Adjust speed based on boost
+    moveInterval = currentTime < speedBoostEndTime ? 75 : 150;
 
-    // Move Snake
     if (currentTime - lastMoveTime > moveInterval) {
         const head = snake.segments[0];
         const newHead = [head[0] + snake.direction[0], head[1] + snake.direction[1]];
         let grow = false;
+
+        // Check for food
         if (newHead[0] === food.position[0] && newHead[1] === food.position[1]) {
             if (food.type === 'normal') {
                 score += 1;
             } else if (food.type === 'speed') {
-                speedBoostEndTime = currentTime + 5000; // 5-second speed boost
+                speedBoostEndTime = currentTime + 5000; // 5-second boost
             }
-            food.respawn();
             grow = true;
-            document.getElementById('score').textContent = `Score: ${score}`;
         }
-        snake.move(grow);
 
         // Collision Detection
+        const collisionSegments = grow ? snake.segments : snake.segments.slice(0, -1);
         if (newHead[0] < 0 || newHead[0] >= 20 || newHead[1] < 0 || newHead[1] >= 20 ||
-            snake.segments.slice(1).some(seg => seg[0] === newHead[0] && seg[1] === newHead[1]) ||
-            obstacles.some(obs => obs[0] === newHead[0] && obs[1] === newHead[1])) {
+            obstacles.some(obs => obs[0] === newHead[0] && obs[1] === newHead[1]) ||
+            collisionSegments.some(seg => seg[0] === newHead[0] && seg[1] === newHead[1])) {
             alert('Game Over');
             // Reset Game
             snake.segments = [[10, 10]];
@@ -148,11 +156,17 @@ function gameLoop(currentTime) {
             score = 0;
             speedBoostEndTime = 0;
             document.getElementById('score').textContent = `Score: 0`;
+        } else {
+            // Move Snake
+            snake.move(grow);
+            if (grow) {
+                food.respawn();
+                document.getElementById('score').textContent = `Score: ${score}`;
+            }
         }
         lastMoveTime = currentTime;
     }
 
-    // Render
     renderer.render(scene, camera);
 }
 requestAnimationFrame(gameLoop);
