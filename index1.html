@@ -4,19 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Snake Xtreme - Home</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="css/retro-effects.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/5.3.3/pixi.min.js"></script>
 </head>
 <body>
-    <div id="start-screen">
-        <h1>Snake Xtreme</h1>
-        <p>Use arrow keys to move. Eat food to grow. Avoid walls and obstacles!</p>
-        <select id="game-mode">
-            <option value="classic">Classic (Walls Kill)</option>
-            <option value="no-walls">No Walls (Wrap Around)</option>
-        </select>
-        <button id="play-button">Play</button>
-        <button id="shop-button">Shop</button>
+    <div id="game-container">
+        <div class="crt-effect"></div>
+        <div class="scanlines"></div>
+        <div id="start-screen" class="game-ui">
+            <h1>Snake Xtreme</h1>
+            <p>Use arrow keys to move. Eat food to grow. Avoid walls and obstacles!</p>
+            <select id="game-mode">
+                <option value="classic">Classic (Walls Kill)</option>
+                <option value="no-walls">No Walls (Wrap Around)</option>
+            </select>
+            <button id="play-button">Play</button>
+            <button id="shop-button">Shop</button>
+        </div>
     </div>
     <script>
         document.getElementById('play-button').addEventListener('click', () => {

@@ -4,14 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Snake Xtreme - Shop</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="css/retro-effects.css">
 </head>
 <body>
-    <div id="shop-screen">
-        <h1>Shop</h1>
-        <p>Coins: <span id="coin-display">0</span></p>
-        <div id="color-list"></div>
-        <button id="back-button">Back to Menu</button>
+    <div id="game-container">
+        <div class="crt-effect"></div>
+        <div class="scanlines"></div>
+        <div id="shop-screen" class="game-ui">
+            <h1>Shop</h1>
+            <p>Coins: <span id="coin-display">0</span></p>
+            <div id="color-list"></div>
+            <button id="back-button">Back to Menu</button>
+        </div>
     </div>
     <script>
         let coins = parseInt(localStorage.getItem('coins')) || 0;

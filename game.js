@@ -9,6 +9,7 @@ let cheatCode = '', invincibility = false, powerUpCount = 0, gameStartTime = 0;
 let achievements = JSON.parse(localStorage.getItem('achievements')) || { score100: false, powerUp5: false, survive5Min: false };
 let leaderboard = JSON.parse(localStorage.getItem('leaderboard')) || [];
 let config = { snakeColors: {}, difficulties: {} };
+let gameEnhancement, particles = [];
 
 // Load configuration
 fetch('config.xml')
@@ -27,6 +28,11 @@ fetch('config.xml')
         });
         initializeGame();
     });
+
+// Initialize game enhancement
+document.addEventListener('DOMContentLoaded', function() {
+    gameEnhancement = new GameEnhancement(document.getElementById('game-container'));
+});
 
 // Pixi.js setup
 app = new PIXI.Application({
@@ -48,8 +54,14 @@ for (let i = 0; i <= gridSize; i++) {
 }
 app.stage.addChild(gridGraphics);
 
-// Snake setup
-snake = { segments: [{ x: 10, y: 10 }], graphics: new PIXI.Graphics() };
+// Snake setup with improved visibility
+snake = { 
+    segments: [{ x: 10, y: 10 }], 
+    graphics: new PIXI.Graphics(),
+    // Add these properties for the RenderUtils to work
+    body: [{ x: 10, y: 10 }],
+    direction: 'RIGHT'
+};
 app.stage.addChild(snake.graphics);
 food = new PIXI.Graphics();
 app.stage.addChild(food);
@@ -75,6 +87,11 @@ function updateDisplays() {
     coinsDisplay.textContent = `Coins: ${coins}`;
     finalScoreDisplay.textContent = score;
     highScoreGameOverDisplay.textContent = highScore;
+    
+    // Update game enhancement score if available
+    if (gameEnhancement) {
+        gameEnhancement.updateScore(score);
+    }
 }
 
 // Spawn functions
@@ -84,6 +101,10 @@ function spawnFood() {
         food.gridY = Math.floor(Math.random() * gridSize);
     } while (snake.segments.some(seg => seg.x === food.gridX && seg.y === food.gridY) ||
              obstacles.some(obs => obs.gridX === food.gridX && obs.gridY === food.gridY));
+    
+    // Update food object for RenderUtils
+    food.x = food.gridX;
+    food.y = food.gridY;
     drawFood();
 }
 
@@ -127,19 +148,45 @@ function spawnEasterEgg() {
     app.stage.addChild(easterEgg);
 }
 
-// Drawing functions
+// Drawing functions with enhanced rendering
 function drawSnake() {
-    snake.graphics.clear();
-    snake.graphics.beginFill(PIXI.utils.string2hex(config.snakeColors[selectedColor].hex));
-    snake.segments.forEach(seg => snake.graphics.drawRoundedRect(seg.x * cellSize, seg.y * cellSize, cellSize - 2, cellSize - 2, 5));
-    snake.graphics.endFill();
+    // Update snake body for RenderUtils
+    snake.body = snake.segments.map(seg => ({ x: seg.x, y: seg.y }));
+    
+    // Set direction for RenderUtils
+    if (direction.x === 1) snake.direction = 'RIGHT';
+    else if (direction.x === -1) snake.direction = 'LEFT';
+    else if (direction.y === 1) snake.direction = 'DOWN';
+    else if (direction.y === -1) snake.direction = 'UP';
+    
+    // Use custom renderer with canvas context
+    const renderer = app.renderer;
+    renderer.plugins.interaction.calculatePointerPosition();
+    const ctx = document.getElementById('game-canvas').getContext('2d');
+    
+    // Clear the specific area where snake is
+    ctx.clearRect(0, 0, gridSize * cellSize, gridSize * cellSize);
+    
+    // Draw grid background
+    RenderUtils.drawGrid(ctx, gridSize * cellSize, gridSize * cellSize, cellSize);
+    
+    // Draw enhanced snake
+    RenderUtils.drawSnake(ctx, snake, cellSize);
+    
+    // Update particles if any
+    if (particles.length > 0) {
+        RenderUtils.updateParticles(ctx, particles);
+    }
 }
 
 function drawFood() {
-    food.clear();
-    food.beginFill(0xff0000);
-    food.drawCircle(food.gridX * cellSize + cellSize / 2, food.gridY * cellSize + cellSize / 2, cellSize / 2 - 1);
-    food.endFill();
+    // Use custom renderer with canvas context
+    const renderer = app.renderer;
+    renderer.plugins.interaction.calculatePointerPosition();
+    const ctx = document.getElementById('game-canvas').getContext('2d');
+    
+    // Draw food with pulsating effect
+    RenderUtils.drawFood(ctx, food, cellSize, Date.now());
 }
 
 function drawTrail() {
@@ -161,7 +208,7 @@ let lastMoveTime = 0;
 function initializeGame() {
     const selectedColor = localStorage.getItem('selectedColor') || 'green';
     const difficulty = localStorage.getItem('difficulty') || 'medium';
-    const moveInterval = config.difficulties[difficulty].speed;
+    const moveInterval = config.difficulties[difficulty]?.speed || 100;
 
     let ticker = PIXI.Ticker.shared;
     ticker.add((delta) => {
@@ -170,8 +217,6 @@ function initializeGame() {
         if (currentTime - lastMoveTime >= moveInterval) {
             moveSnake();
             drawSnake();
-            drawTrail();
-            updateDisplays();
             lastMoveTime = currentTime;
         }
     });
@@ -179,7 +224,7 @@ function initializeGame() {
     gameStartTime = performance.now();
 }
 
-// Movement logic
+// Movement logic with enhanced effects
 function moveSnake() {
     direction = { ...nextDirection };
     let head = { x: snake.segments[0].x + direction.x, y: snake.segments[0].y + direction.y };
@@ -202,10 +247,28 @@ function moveSnake() {
     trail.push({ x: head.x, y: head.y, alpha: 1 });
     if (trail.length > 10) trail.shift();
 
+    // Play move sound occasionally
+    if (gameEnhancement) {
+        gameEnhancement.playMoveSound();
+    }
+
     if (head.x === food.gridX && head.y === food.gridY) {
         score += 10;
         coins += 1;
         localStorage.setItem('coins', coins);
+        
+        // Create food particles
+        if (gameEnhancement) {
+            gameEnhancement.createFoodParticles(food.gridX, food.gridY, cellSize);
+        } else {
+            particles = [...particles, ...RenderUtils.createFoodParticles(food.gridX, food.gridY, cellSize)];
+        }
+        
+        // Screen shake effect
+        if (gameEnhancement) {
+            gameEnhancement.screenShake();
+        }
+        
         spawnFood();
         if (Math.random() < 0.3) spawnPowerUp();
         if (score >= 50 && obstacles.length === 0) spawnObstacles();
@@ -226,6 +289,7 @@ function moveSnake() {
         snake.segments.pop();
     }
     checkAchievements();
+    updateDisplays();
 }
 
 // Achievements logic
@@ -245,7 +309,7 @@ function checkAchievements() {
     localStorage.setItem('achievements', JSON.stringify(achievements));
 }
 
-// Game over
+// Game over with enhanced effects
 function endGame() {
     gameState = 'gameover';
     if (score > highScore) highScore = score;
@@ -254,6 +318,12 @@ function endGame() {
     leaderboard.sort((a, b) => b - a);
     leaderboard = leaderboard.slice(0, 5);
     localStorage.setItem('leaderboard', JSON.stringify(leaderboard));
+    
+    // Play game over sound and show message
+    if (gameEnhancement) {
+        gameEnhancement.playGameOverSound();
+    }
+    
     gameOverScreen.style.display = 'block';
 }
 
@@ -303,6 +373,8 @@ document.getElementById('menu-button').addEventListener('click', () => window.lo
 
 function resetGame() {
     snake.segments = [{ x: 10, y: 10 }];
+    snake.body = [{ x: 10, y: 10 }]; // For RenderUtils
+    snake.direction = 'RIGHT'; // For RenderUtils
     direction = { x: 1, y: 0 };
     nextDirection = { x: 1, y: 0 };
     score = 0;
@@ -315,8 +387,14 @@ function resetGame() {
     if (easterEgg) app.stage.removeChild(easterEgg);
     easterEgg = null;
     trail = [];
+    particles = [];
     spawnFood();
     gameState = 'playing';
     gameStartTime = performance.now();
     updateDisplays();
+    
+    // Reset enhancements
+    if (gameEnhancement) {
+        gameEnhancement.hideMessage();
+    }
 }
