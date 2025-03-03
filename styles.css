@@ -7,15 +7,15 @@ body, html {
     font-family: 'Courier New', Courier, monospace;
 }
 
-#home-screen, #shop-screen, #settings-screen, #game-over-screen {
+#start-screen, #game-over-screen {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
+    text-align: center;
     background-color: #111;
     padding: 20px;
     border: 2px solid #0f0;
-    text-align: center;
 }
 
 #game-container {
@@ -37,17 +37,19 @@ body, html {
     pointer-events: none;
 }
 
-#score {
+#score, #high-score {
     position: absolute;
     top: 10px;
-    left: 10px;
     font-size: 24px;
     text-shadow: 2px 2px #000;
 }
 
-h1 {
-    margin: 0;
-    padding-bottom: 10px;
+#score {
+    left: 10px;
+}
+
+#high-score {
+    right: 10px;
 }
 
 button {
