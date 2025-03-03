@@ -2,7 +2,7 @@ body, html {
     margin: 0;
     padding: 0;
     overflow: hidden;
-    background-color: #2c2828;
+    background-color: #000;
     color: #0f0;
     font-family: 'Courier New', Courier, monospace;
 }
@@ -29,26 +29,24 @@ body, html {
 
 #game-canvas {
     display: block;
+    border: 2px solid #0f0;
 }
 
 #ui {
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    justify-content: center;
+    gap: 20px;
     pointer-events: none;
 }
 
 #score, #high-score, #coins {
-    position: absolute;
-    top: 10px;
-    font-size: 20px;
+    font-size: 24px;
     text-shadow: 2px 2px #000;
 }
-
-#score { left: 10px; }
-#high-score { right: 10px; }
-#coins { left: 50%; transform: translateX(-50%); }
 
 button {
     background-color: #0f0;
@@ -62,4 +60,11 @@ button {
 
 button:hover {
     background-color: #0c0;
+}
+
+#game-over-screen {
+    background-color: #111;
+    padding: 20px;
+    border: 2px solid #0f0;
+    text-align: center;
 }

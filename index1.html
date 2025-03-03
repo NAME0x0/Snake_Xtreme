@@ -9,20 +9,25 @@
 <body>
     <div id="landing-screen">
         <h1>Snake Xtreme</h1>
+        <p>Use arrow keys to move. Eat food to grow. Avoid walls and yourself!</p>
+        <div>
+            <button id="difficulty-easy">Easy</button>
+            <button id="difficulty-medium">Medium</button>
+            <button id="difficulty-hard">Hard</button>
+        </div>
         <button id="play-button">Play</button>
         <button id="shop-button">Shop</button>
-        <button id="settings-button">Settings</button>
     </div>
     <script>
-        document.getElementById('play-button').addEventListener('click', () => {
-            window.location.href = 'index3.html';
+        const difficulties = ['easy', 'medium', 'hard'];
+        difficulties.forEach(diff => {
+            document.getElementById(`difficulty-${diff}`).addEventListener('click', () => {
+                localStorage.setItem('difficulty', diff);
+                difficulties.forEach(d => document.getElementById(`difficulty-${d}`).style.backgroundColor = d === diff ? '#0c0' : '#0f0');
+            });
         });
-        document.getElementById('shop-button').addEventListener('click', () => {
-            window.location.href = 'index2.html';
-        });
-        document.getElementById('settings-button').addEventListener('click', () => {
-            alert('Settings: Coming soon! (e.g., difficulty, controls)');
-        });
+        document.getElementById('play-button').addEventListener('click', () => window.location.href = 'index3.html');
+        document.getElementById('shop-button').addEventListener('click', () => window.location.href = 'index2.html');
     </script>
 </body>
 </html>

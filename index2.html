@@ -11,18 +11,13 @@
         <h1>Shop</h1>
         <p>Coins: <span id="coin-display">0</span></p>
         <div id="color-list"></div>
-        <button id="back-button">Back</button>
+        <button id="back-button">Back to Menu</button>
     </div>
     <script>
         let coins = parseInt(localStorage.getItem('coins')) || 0;
         document.getElementById('coin-display').textContent = coins;
 
-        const snakeColors = {
-            green: { color: '#00ff00', price: 0 },
-            red: { color: '#ff0000', price: 50 },
-            blue: { color: '#0000ff', price: 100 }
-        };
-
+        const snakeColors = { green: { color: '#00ff00', price: 0 }, red: { color: '#ff0000', price: 50 }, blue: { color: '#0000ff', price: 100 } };
         let ownedColors = JSON.parse(localStorage.getItem('ownedColors')) || ['green'];
         let selectedColor = localStorage.getItem('selectedColor') || 'green';
 
@@ -60,12 +55,8 @@
                 colorList.appendChild(button);
             }
         }
-
         updateShop();
-
-        document.getElementById('back-button').addEventListener('click', () => {
-            window.location.href = 'index1.html';
-        });
+        document.getElementById('back-button').addEventListener('click', () => window.location.href = 'index1.html');
     </script>
 </body>
 </html>
