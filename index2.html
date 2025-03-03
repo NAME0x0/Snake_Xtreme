@@ -15,17 +15,32 @@
     </div>
     <script>
         let coins = parseInt(localStorage.getItem('coins')) || 0;
-        document.getElementById('coin-display').textContent = coins;
-
-        const snakeColors = { green: { color: '#00ff00', price: 0 }, red: { color: '#ff0000', price: 50 }, blue: { color: '#0000ff', price: 100 } };
         let ownedColors = JSON.parse(localStorage.getItem('ownedColors')) || ['green'];
         let selectedColor = localStorage.getItem('selectedColor') || 'green';
+        let gameConfig = { snakeColors: {} };
 
-        function updateShop() {
+        fetch('config.xml')
+            .then(response => response.text())
+            .then(str => new DOMParser().parseFromString(str, "text/xml"))
+            .then(data => {
+                const colors = data.querySelectorAll('snakeColors color');
+                colors.forEach(color => {
+                    const name = color.getAttribute('name');
+                    const price = parseInt(color.getAttribute('price'));
+                    const hex = color.getAttribute('hex');
+                    gameConfig.snakeColors[name] = { price, hex };
+                });
+                initializeShop();
+            });
+
+        function initializeShop() {
+            document.getElementById('coin-display').textContent = coins;
             const colorList = document.getElementById('color-list');
             colorList.innerHTML = '';
-            for (const color in snakeColors) {
+            for (const color in gameConfig.snakeColors) {
                 const button = document.createElement('button');
+                button.style.backgroundColor = gameConfig.snakeColors[color].hex;
+                button.style.color = '#000';
                 if (ownedColors.includes(color)) {
                     button.textContent = `Select ${color}`;
                     button.onclick = () => {
@@ -34,10 +49,10 @@
                         updateShop();
                     };
                 } else {
-                    button.textContent = `Buy ${color} (${snakeColors[color].price} coins)`;
+                    button.textContent = `Buy ${color} (${gameConfig.snakeColors[color].price} coins)`;
                     button.onclick = () => {
-                        if (coins >= snakeColors[color].price) {
-                            coins -= snakeColors[color].price;
+                        if (coins >= gameConfig.snakeColors[color].price) {
+                            coins -= gameConfig.snakeColors[color].price;
                             ownedColors.push(color);
                             selectedColor = color;
                             localStorage.setItem('coins', coins);
@@ -50,12 +65,14 @@
                         }
                     };
                 }
-                button.style.backgroundColor = snakeColors[color].color;
-                button.style.color = '#000';
                 colorList.appendChild(button);
             }
         }
-        updateShop();
+
+        function updateShop() {
+            initializeShop();
+        }
+
         document.getElementById('back-button').addEventListener('click', () => window.location.href = 'index1.html');
     </script>
 </body>

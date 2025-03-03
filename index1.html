@@ -5,29 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Snake Xtreme - Home</title>
     <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/5.3.3/pixi.min.js"></script>
 </head>
 <body>
-    <div id="landing-screen">
+    <div id="start-screen">
         <h1>Snake Xtreme</h1>
-        <p>Use arrow keys to move. Eat food to grow. Avoid walls and yourself!</p>
-        <div>
-            <button id="difficulty-easy">Easy</button>
-            <button id="difficulty-medium">Medium</button>
-            <button id="difficulty-hard">Hard</button>
-        </div>
+        <p>Use arrow keys to move. Eat food to grow. Avoid walls and obstacles!</p>
+        <select id="game-mode">
+            <option value="classic">Classic (Walls Kill)</option>
+            <option value="no-walls">No Walls (Wrap Around)</option>
+        </select>
         <button id="play-button">Play</button>
         <button id="shop-button">Shop</button>
     </div>
     <script>
-        const difficulties = ['easy', 'medium', 'hard'];
-        difficulties.forEach(diff => {
-            document.getElementById(`difficulty-${diff}`).addEventListener('click', () => {
-                localStorage.setItem('difficulty', diff);
-                difficulties.forEach(d => document.getElementById(`difficulty-${d}`).style.backgroundColor = d === diff ? '#0c0' : '#0f0');
-            });
+        document.getElementById('play-button').addEventListener('click', () => {
+            localStorage.setItem('gameMode', document.getElementById('game-mode').value);
+            window.location.href = 'index3.html';
         });
-        document.getElementById('play-button').addEventListener('click', () => window.location.href = 'index3.html');
-        document.getElementById('shop-button').addEventListener('click', () => window.location.href = 'index2.html');
+        document.getElementById('shop-button').addEventListener('click', () => {
+            window.location.href = 'index2.html';
+        });
     </script>
 </body>
 </html>
