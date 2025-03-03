@@ -2,11 +2,12 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Snake Xtreme - Game</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="css/retro-effects.css">
+    <link rel="stylesheet" href="css/touch-controls.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/5.3.3/pixi.min.js"></script>
 </head>
 <body>
@@ -14,20 +15,28 @@
         <canvas id="game-canvas"></canvas>
         <div class="crt-effect"></div>
         <div class="scanlines"></div>
+        
         <div id="ui" class="game-ui">
             <div id="score">Score: 0</div>
             <div id="high-score">High Score: 0</div>
             <div id="achievements">Achievements: 0/3</div>
             <div id="coins">Coins: 0</div>
         </div>
+        
         <div id="game-over-screen" style="display: none;" class="game-ui">
             <h1>Game Over</h1>
-            <p>Score: <span id="final-score">0</span></p>
+            <p class="big-score">Score: <span id="final-score">0</span></p>
             <p>High Score: <span id="high-score-display">0</span></p>
-            <button id="restart-button">Restart</button>
-            <button id="leaderboard-button">Leaderboard</button>
-            <button id="menu-button">Main Menu</button>
+            
+            <div class="game-over-buttons">
+                <button id="restart-button">Restart</button>
+                <button id="leaderboard-button">Leaderboard</button>
+                <button id="menu-button">Main Menu</button>
+            </div>
+            
+            <p class="restart-hint">Press SPACE to restart</p>
         </div>
+        
         <div id="leaderboard" style="display: none;" class="game-ui">
             <h1>Leaderboard</h1>
             <ul id="leaderboard-list"></ul>
@@ -36,6 +45,7 @@
     </div>
     <script src="js/render-utils.js"></script>
     <script src="js/game-enhancement.js"></script>
+    <script src="js/touch-controls.js"></script>
     <script src="game.js"></script>
 </body>
 </html>

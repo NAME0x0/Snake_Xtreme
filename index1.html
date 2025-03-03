@@ -15,20 +15,64 @@
         <div class="scanlines"></div>
         <div id="start-screen" class="game-ui">
             <h1>Snake Xtreme</h1>
-            <p>Use arrow keys to move. Eat food to grow. Avoid walls and obstacles!</p>
-            <select id="game-mode">
-                <option value="classic">Classic (Walls Kill)</option>
-                <option value="no-walls">No Walls (Wrap Around)</option>
-            </select>
-            <button id="play-button">Play</button>
-            <button id="shop-button">Shop</button>
+            
+            <div class="game-options">
+                <div class="option-group">
+                    <label for="game-mode">Game Mode:</label>
+                    <select id="game-mode">
+                        <option value="classic">Classic (Walls Kill)</option>
+                        <option value="no-walls">No Walls (Wrap Around)</option>
+                    </select>
+                </div>
+                
+                <div class="option-group">
+                    <label for="difficulty">Difficulty:</label>
+                    <select id="difficulty">
+                        <option value="easy">Easy</option>
+                        <option value="medium" selected>Medium</option>
+                        <option value="hard">Hard</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="controls-info">
+                <h3>Controls</h3>
+                <p>↑ ↓ ← → to move</p>
+                <p>SPACE to start</p>
+                <p>ESC to pause</p>
+            </div>
+            
+            <div class="menu-buttons">
+                <button id="play-button">Play</button>
+                <button id="shop-button">Shop</button>
+            </div>
         </div>
     </div>
     <script>
+        // Load previously selected options
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedMode = localStorage.getItem('gameMode');
+            if (savedMode) {
+                document.getElementById('game-mode').value = savedMode;
+            }
+            
+            const savedDifficulty = localStorage.getItem('difficulty');
+            if (savedDifficulty) {
+                document.getElementById('difficulty').value = savedDifficulty;
+            }
+        });
+        
         document.getElementById('play-button').addEventListener('click', () => {
-            localStorage.setItem('gameMode', document.getElementById('game-mode').value);
+            // Save selected options
+            const gameMode = document.getElementById('game-mode').value;
+            const difficulty = document.getElementById('difficulty').value;
+            
+            localStorage.setItem('gameMode', gameMode);
+            localStorage.setItem('difficulty', difficulty);
+            
             window.location.href = 'index3.html';
         });
+        
         document.getElementById('shop-button').addEventListener('click', () => {
             window.location.href = 'index2.html';
         });
