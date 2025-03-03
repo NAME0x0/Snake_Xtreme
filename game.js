@@ -49,31 +49,24 @@ fetch('config.xml')
 // Initialize game enhancement with error handling
 document.addEventListener('DOMContentLoaded', function() {
     try {
+        // Initialize RenderUtils first
+        const canvas = document.getElementById('game-canvas');
+        const ctx = canvas.getContext('2d');
+        if (RenderUtils && typeof RenderUtils.init === 'function') {
+            RenderUtils.init(ctx);
+        }
+        
+        // Then initialize game enhancement
         gameEnhancement = new GameEnhancement(document.getElementById('game-container'));
+        
         // Show start message
         showStartMessage();
+        
         // Setup event listeners after DOM is fully loaded
         setupEventListeners();
         
-        // Initialize touch controls
-        touchControls = new TouchControls(gameContainer);
-        touchControls.init((direction) => {
-            // Convert direction string to vector
-            switch(direction) {
-                case 'UP': 
-                    if (direction.y !== 1) nextDirection = { x: 0, y: -1 }; 
-                    break;
-                case 'DOWN': 
-                    if (direction.y !== -1) nextDirection = { x: 0, y: 1 }; 
-                    break;
-                case 'LEFT': 
-                    if (direction.x !== 1) nextDirection = { x: -1, y: 0 }; 
-                    break;
-                case 'RIGHT': 
-                    if (direction.x !== -1) nextDirection = { x: 1, y: 0 }; 
-                    break;
-            }
-        });
+        // Initialize touch controls last (after other UI is set up)
+        initializeTouchControls();
     } catch (error) {
         console.error("Error initializing game:", error);
         // Provide fallback initialization to ensure game works
@@ -261,6 +254,7 @@ function showStartMessage() {
     
     // Update game state
     gameState = 'ready';
+    window.gameState = 'ready'; // Expose gameState to TouchControls
 }
 
 // Consolidated event listeners
@@ -271,8 +265,13 @@ function setupEventListeners() {
     }
     
     eventHandlers.keydown = function(event) {
-        // Handle spacebar to start/restart
-        if (event.code === 'Space' && (gameState === 'ready' || gameState === 'gameover')) {
+        // Fix: Handle Space key correctly (both code and key for compatibility)
+        if ((event.code === 'Space' || event.key === ' ') && 
+            (gameState === 'ready' || gameState === 'gameover')) {
+            
+            // Log to ensure this is being called
+            console.log('Space pressed, game starting!');
+            
             if (gameState === 'gameover') {
                 resetGame();
                 gameOverScreen.style.display = 'none';
@@ -285,6 +284,7 @@ function setupEventListeners() {
             }
             
             gameState = 'playing';
+            window.gameState = 'playing'; // Update global state
             gameStartTime = performance.now();
             return;
         }
@@ -450,6 +450,16 @@ function initializeGame() {
     difficulty = localStorage.getItem('difficulty') || 'medium';
     const moveInterval = config.difficulties[difficulty]?.speed || 100;
     
+    // Initialize RenderUtils if not already done
+    const canvas = document.getElementById('game-canvas');
+    const ctx = canvas.getContext('2d');
+    if (RenderUtils && typeof RenderUtils.init === 'function') {
+        RenderUtils.init(ctx);
+    }
+    
+    // Fix: Do a complete canvas clear on initialization
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
     // Use requestAnimationFrame with throttling for better performance
     function gameLoop(timestamp) {
         // Calculate elapsed time
@@ -466,13 +476,15 @@ function initializeGame() {
                     lastMoveTime = timestamp;
                 }
                 
+                // Fix: Full clear on each frame
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
                 // Render only what's needed
                 drawSnake();
                 drawFood();
                 
                 // Update particles if there are any
                 if (gameEnhancement && gameEnhancement.particles.length > 0) {
-                    const ctx = document.getElementById('game-canvas').getContext('2d');
                     gameEnhancement.updateParticles(ctx);
                 }
             }
@@ -493,6 +505,7 @@ function initializeGame() {
     
     // Start in 'ready' state, waiting for spacebar
     gameState = 'ready';
+    window.gameState = 'ready'; // Update global state
     showStartMessage();
 }
 
@@ -708,5 +721,37 @@ function setLocalStorageItem(key, value) {
     } catch (error) {
         console.error(`Error storing to localStorage for key ${key}:`, error);
         return false;
+    }
+}
+
+// Separate touch controls initialization
+function initializeTouchControls() {
+    try {
+        touchControls = new TouchControls(gameContainer);
+        touchControls.init((directionString) => {
+            // Only update direction if game is in playing state
+            if (gameState !== 'playing') return;
+            
+            // Convert direction string to vector
+            switch(directionString) {
+                case 'UP': 
+                    if (direction.y !== 1) nextDirection = { x: 0, y: -1 }; 
+                    break;
+                case 'DOWN': 
+                    if (direction.y !== -1) nextDirection = { x: 0, y: 1 }; 
+                    break;
+                case 'LEFT': 
+                    if (direction.x !== 1) nextDirection = { x: -1, y: 0 }; 
+                    break;
+                case 'RIGHT': 
+                    if (direction.x !== -1) nextDirection = { x: 1, y: 0 }; 
+                    break;
+            }
+        });
+        
+        // Enable tap to start/restart
+        touchControls.enableTapToStart();
+    } catch (error) {
+        console.error("Error initializing touch controls:", error);
     }
 }

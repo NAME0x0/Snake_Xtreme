@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="css/retro-effects.css">
     <link rel="stylesheet" href="css/touch-controls.css">
+    <link rel="stylesheet" href="css/game-debug.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/5.3.3/pixi.min.js"></script>
 </head>
 <body>
@@ -22,6 +23,10 @@
             <div id="achievements">Achievements: 0/3</div>
             <div id="coins">Coins: 0</div>
         </div>
+        
+        <!-- Add debug overlay -->
+        <div id="debug-overlay" style="display:none"></div>
+        <div class="game-state-indicator"></div>
         
         <div id="game-over-screen" style="display: none;" class="game-ui">
             <h1>Game Over</h1>
@@ -43,6 +48,39 @@
             <button id="back-to-game">Back</button>
         </div>
     </div>
+
+    <script>
+        // Add debug mode toggle
+        const debugMode = true;
+        if (debugMode) {
+            document.getElementById('debug-overlay').style.display = 'block';
+            
+            // Log function that shows in overlay
+            window.debugLog = function(message) {
+                console.log(message);
+                const overlay = document.getElementById('debug-overlay');
+                if (overlay) {
+                    const line = document.createElement('div');
+                    line.textContent = message;
+                    overlay.appendChild(line);
+                    if (overlay.children.length > 10) {
+                        overlay.removeChild(overlay.children[0]);
+                    }
+                }
+            };
+            
+            // State indicator
+            setInterval(() => {
+                const indicator = document.querySelector('.game-state-indicator');
+                if (indicator) {
+                    indicator.textContent = `Game State: ${window.gameState || 'unknown'}`;
+                }
+            }, 500);
+        } else {
+            window.debugLog = function() {}; // No-op
+        }
+    </script>
+    
     <script src="js/render-utils.js"></script>
     <script src="js/game-enhancement.js"></script>
     <script src="js/touch-controls.js"></script>

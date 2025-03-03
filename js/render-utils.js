@@ -127,42 +127,63 @@ const RenderUtils = (function() {
       canvasContext = ctx;
       // Reset timing variables
       lastTime = 0;
+      
+      // Ensure canvas is properly configured
+      if (ctx) {
+        // Fix canvas display
+        ctx.canvas.style.display = 'block';
+        
+        // Set initial state
+        ctx.imageSmoothingEnabled = false; // sharper pixel rendering
+        
+        console.log('RenderUtils initialized with canvas context');
+      } else {
+        console.error('No canvas context provided for RenderUtils');
+      }
     },
     
     // Draw snake segments with improved visibility and style
     drawSnake: function(ctx, snake, cellSize) {
-      if (!ctx || !snake || !snake.body || snake.body.length === 0) return;
+      if (!ctx || !snake || !snake.body || snake.body.length === 0) {
+        console.error('Cannot draw snake: invalid parameters');
+        return;
+      }
+      
+      // Log to ensure this is being called
+      console.log(`Drawing snake with ${snake.body.length} segments`);
       
       ctx.save();
       
-      // Check if we're running on a low-performance device
-      const lowPerformanceMode = !hasWebGL || snake.body.length > 50;
-      
-      // In low performance mode, don't do the wave animation
-      const useWaveEffect = !lowPerformanceMode;
+      // More visible snake colors
+      const headColor = '#7FFF00'; // Bright green for head
+      const bodyColor = '#32CD32'; // Lime green for body
       
       // Draw body segments (back to front)
       for (let i = snake.body.length - 1; i >= 0; i--) {
         const segment = snake.body[i];
         const isHead = i === 0;
         
-        ctx.fillStyle = isHead ? '#7FFF00' : '#32CD32';
+        ctx.fillStyle = isHead ? headColor : bodyColor;
         
-        // Add segment effect - use pre-computed sin table
-        let offsetX = 0;
-        if (useWaveEffect && !isHead) {
-          const timeOffset = Math.floor(Date.now() / 20) % sinTableSize;
-          offsetX = getSinValue((timeOffset + i * 5) % sinTableSize, 0.5);
-        }
-        
-        // Draw the segment
+        // Draw segments slightly larger to ensure visibility
+        // Use fixed drawing instead of the wave effect for troubleshooting
         this.drawRoundRect(
           ctx, 
-          segment.x * cellSize + offsetX, 
-          segment.y * cellSize, 
+          segment.x * cellSize + 1, // +1 for better visibility 
+          segment.y * cellSize + 1, 
           cellSize - 2, 
           cellSize - 2, 
           isHead ? 4 : 2
+        );
+        
+        // Draw segment border for better visibility
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(
+          segment.x * cellSize + 1,
+          segment.y * cellSize + 1,
+          cellSize - 2,
+          cellSize - 2
         );
       }
       
@@ -261,55 +282,30 @@ const RenderUtils = (function() {
     drawGrid: function(ctx, width, height, cellSize) {
       if (!ctx) return;
       
-      // Only draw grid every 500ms to save performance
-      const currentTime = Date.now();
-      if (currentTime - lastTime < 500) return;
+      // Always draw grid for troubleshooting
+      ctx.save();
       
-      lastTime = currentTime;
+      // More visible grid
+      ctx.strokeStyle = 'rgba(50, 205, 50, 0.3)'; // Brighter grid
+      ctx.lineWidth = 1;
       
-      // Draw grid to offscreen canvas for reuse
-      if (!this.gridCanvas) {
-        this.gridCanvas = document.createElement('canvas');
-        this.gridCanvas.width = width;
-        this.gridCanvas.height = height;
-        const gridCtx = this.gridCanvas.getContext('2d');
-        
-        gridCtx.save();
-        
-        // Make grid lines dimmer on touch devices
-        if (isTouchMode()) {
-          gridCtx.strokeStyle = 'rgba(50, 205, 50, 0.1)'; // More translucent
-        } else {
-          gridCtx.strokeStyle = 'rgba(50, 205, 50, 0.2)';
-        }
-        
-        gridCtx.lineWidth = 0.5;
-        
-        // Adjust grid spacing based on device capabilities
-        const gridFactor = getGridDensity();
-        const gridSpacing = cellSize * gridFactor;
-        
-        // Draw vertical lines
-        for (let x = 0; x <= width; x += gridSpacing) {
-          gridCtx.beginPath();
-          gridCtx.moveTo(x, 0);
-          gridCtx.lineTo(x, height);
-          gridCtx.stroke();
-        }
-        
-        // Draw horizontal lines
-        for (let y = 0; y <= height; y += gridSpacing) {
-          gridCtx.beginPath();
-          gridCtx.moveTo(0, y);
-          gridCtx.lineTo(width, y);
-          gridCtx.stroke();
-        }
-        
-        gridCtx.restore();
+      // Vertical lines
+      for (let x = 0; x <= width; x += cellSize) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, height);
+        ctx.stroke();
       }
       
-      // Draw the pre-rendered grid
-      ctx.drawImage(this.gridCanvas, 0, 0);
+      // Horizontal lines
+      for (let y = 0; y <= height; y += cellSize) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(width, y);
+        ctx.stroke();
+      }
+      
+      ctx.restore();
     },
     
     // Helper for drawing rounded rectangles - optimized and safer

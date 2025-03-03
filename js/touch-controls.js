@@ -201,42 +201,58 @@ class TouchControls {
   // Additional touch controls - tap to start/pause
   enableTapToStart() {
     const tapHandler = (e) => {
-      const gameState = window.gameState || '';
+      // Get the current game state from global variable
+      const currentGameState = window.gameState || 'unknown';
+      
+      // Log for troubleshooting
+      console.log(`Touch received while game state is: ${currentGameState}`);
       
       // Tap to start the game
-      if (gameState === 'ready') {
+      if (currentGameState === 'ready') {
         e.preventDefault();
         
-        // Find and trigger spacebar event programmatically
+        // Find and remove start message
         const startMessage = document.getElementById('start-message');
-        if (startMessage) {
-          startMessage.remove();
+        if (startMessage && startMessage.parentNode) {
+          startMessage.parentNode.removeChild(startMessage);
         }
         
-        if (window.gameState) {
+        // Update game state
+        if (window.gameState !== undefined) {
           window.gameState = 'playing';
-        }
-        
-        if (window.gameStartTime) {
-          window.gameStartTime = performance.now();
+          console.log('Game state updated to playing via touch');
+          
+          // Also update the snake-game's internal state if accessible
+          if (typeof gameState !== 'undefined') {
+            gameState = 'playing';
+          }
+          
+          // Reset game start time
+          if (window.gameStartTime !== undefined) {
+            window.gameStartTime = performance.now();
+          }
         }
       }
-      
       // Tap to restart after game over
-      else if (gameState === 'gameover') {
+      else if (currentGameState === 'gameover') {
         e.preventDefault();
         
+        // Find and click restart button
         const restartButton = document.getElementById('restart-button');
         if (restartButton) {
           restartButton.click();
+          console.log('Restart button clicked via touch');
         }
       }
     };
     
-    this.gameContainer.addEventListener('touchstart', tapHandler, { passive: false });
+    // Use touchend instead of touchstart for more reliable tap detection
+    this.gameContainer.addEventListener('touchend', tapHandler, { passive: false });
     
     // Store for cleanup
-    this.handlers.tapStart = tapHandler;
+    this.handlers.tapEnd = tapHandler;
+    
+    console.log('Tap to start/restart enabled');
   }
   
   disable() {
@@ -249,8 +265,8 @@ class TouchControls {
       this.gameContainer.removeEventListener('touchend', this.handlers.touchEnd);
     }
     
-    if (this.handlers.tapStart) {
-      this.gameContainer.removeEventListener('touchstart', this.handlers.tapStart);
+    if (this.handlers.tapEnd) {
+      this.gameContainer.removeEventListener('touchend', this.handlers.tapEnd);
     }
     
     // Remove overlay
@@ -259,6 +275,7 @@ class TouchControls {
     }
     
     this.enabled = false;
+    console.log('Touch controls disabled and cleaned up');
   }
 }
 

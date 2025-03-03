@@ -109,14 +109,16 @@ class GameEnhancement {
   
   setupUI() {
     try {
-      // Create score display if it doesn't exist
-      if (!document.querySelector('.score-display')) {
+      // FIX: Don't create a new score display, just use the existing one from HTML
+      this.scoreDisplay = document.getElementById('score');
+      
+      // If no score display exists in HTML, create one (backup)
+      if (!this.scoreDisplay) {
+        console.log("Creating score display as fallback");
         this.scoreDisplay = document.createElement('div');
         this.scoreDisplay.className = 'score-display game-ui';
         this.scoreDisplay.textContent = 'SCORE: 0';
         this.gameContainer.appendChild(this.scoreDisplay);
-      } else {
-        this.scoreDisplay = document.querySelector('.score-display');
       }
     } catch (e) {
       console.error('Error setting up UI:', e);
@@ -298,11 +300,12 @@ class GameEnhancement {
     try {
       if (!this.scoreDisplay) return;
       
-      this.scoreDisplay.textContent = `SCORE: ${score}`;
+      this.scoreDisplay.textContent = `Score: ${score}`;
+      
       // Add "glow" effect when score changes
       this.scoreDisplay.style.textShadow = '0 0 10px #32CD32';
       setTimeout(() => {
-        this.scoreDisplay.style.textShadow = '2px 2px 0px rgba(0, 0, 0, 0.8)';
+        this.scoreDisplay.style.textShadow = ''; // Reset to default
       }, 300);
     } catch (e) {
       console.error('Error updating score:', e);

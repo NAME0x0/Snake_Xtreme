@@ -1,0 +1,45 @@
+/* Debug styling to help identify issues */
+
+/* Make game elements more visible during debugging */
+#game-canvas {
+  border: 5px solid red !important;
+}
+
+/* Debug message container */
+#debug-overlay {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  background: rgba(0, 0, 0, 0.7);
+  color: #00ff00;
+  padding: 10px;
+  font-family: monospace;
+  z-index: 9999;
+  max-width: 300px;
+  max-height: 200px;
+  overflow: auto;
+  border: 1px solid #00ff00;
+  pointer-events: none;
+}
+
+/* Highlight duplicate UI elements */
+#ui .score-display {
+  border: 2px solid red !important;
+}
+
+#score {
+  border: 2px solid blue !important;
+}
+
+/* Visual indicator for game state */
+.game-state-indicator {
+  position: fixed;
+  bottom: 10px;
+  left: 10px;
+  padding: 5px 10px;
+  background: rgba(0, 0, 0, 0.7);
+  color: #00ff00;
+  font-family: monospace;
+  z-index: 9999;
+  border: 1px solid #00ff00;
+}
