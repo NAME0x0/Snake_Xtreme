@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake Xtreme - Shop</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="shop-screen">
+        <h1>Shop</h1>
+        <p>Coins: <span id="coin-display">0</span></p>
+        <div id="color-list"></div>
+        <button id="back-button">Back</button>
+    </div>
+    <script>
+        let coins = parseInt(localStorage.getItem('coins')) || 0;
+        document.getElementById('coin-display').textContent = coins;
+
+        const snakeColors = {
+            green: { color: '#00ff00', price: 0 },
+            red: { color: '#ff0000', price: 50 },
+            blue: { color: '#0000ff', price: 100 }
+        };
+
+        let ownedColors = JSON.parse(localStorage.getItem('ownedColors')) || ['green'];
+        let selectedColor = localStorage.getItem('selectedColor') || 'green';
+
+        function updateShop() {
+            const colorList = document.getElementById('color-list');
+            colorList.innerHTML = '';
+            for (const color in snakeColors) {
+                const button = document.createElement('button');
+                if (ownedColors.includes(color)) {
+                    button.textContent = `Select ${color}`;
+                    button.onclick = () => {
+                        selectedColor = color;
+                        localStorage.setItem('selectedColor', color);
+                        updateShop();
+                    };
+                } else {
+                    button.textContent = `Buy ${color} (${snakeColors[color].price} coins)`;
+                    button.onclick = () => {
+                        if (coins >= snakeColors[color].price) {
+                            coins -= snakeColors[color].price;
+                            ownedColors.push(color);
+                            selectedColor = color;
+                            localStorage.setItem('coins', coins);
+                            localStorage.setItem('ownedColors', JSON.stringify(ownedColors));
+                            localStorage.setItem('selectedColor', color);
+                            document.getElementById('coin-display').textContent = coins;
+                            updateShop();
+                        } else {
+                            alert('Not enough coins!');
+                        }
+                    };
+                }
+                button.style.backgroundColor = snakeColors[color].color;
+                button.style.color = '#000';
+                colorList.appendChild(button);
+            }
+        }
+
+        updateShop();
+
+        document.getElementById('back-button').addEventListener('click', () => {
+            window.location.href = 'index1.html';
+        });
+    </script>
+</body>
+</html>
