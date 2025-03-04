@@ -52,43 +52,42 @@
     <script>
         // Add debug mode toggle
         const debugMode = true;
+        
         if (debugMode) {
-            document.getElementById('debug-overlay').style.display = 'block';
-            // Make sure debug overlay is visible
-            // Log function that shows in overlayLoaded', function() {
-            window.debugLog = function(message) {ntById('debug-overlay');
-                console.log(message);
+            // Make debug overlay visible
+            document.addEventListener('DOMContentLoaded', function() {
                 const overlay = document.getElementById('debug-overlay');
-                if (overlay) {ugLog('Debug mode enabled');
-                    const line = document.createElement('div');ss...');
-                    line.textContent = message;
-                    overlay.appendChild(line);
-                    if (overlay.children.length > 10) {for testing
-                        overlay.removeChild(overlay.children[0]);ton');
-                    }StartBtn.textContent = 'Force Start Game';
-                }ebugStartBtn.style.position = 'fixed';
-            };  debugStartBtn.style.bottom = '50px';
+                if (overlay) {
+                    overlay.style.display = 'block';
+                    window.debugLog('Debug mode enabled');
+                    window.debugLog('Watching for space bar press...');
+                }
+                
+                // Add a direct start button on screen for testing
+                const debugStartBtn = document.createElement('button');
+                debugStartBtn.textContent = 'Force Start Game';
+                debugStartBtn.style.position = 'fixed';
+                debugStartBtn.style.bottom = '50px';
                 debugStartBtn.style.right = '20px';
-            // State indicatorstyle.zIndex = '9999';
-            setInterval(() => {
-                const indicator = document.querySelector('.game-state-indicator');
-                if (indicator) {e to start
-                    indicator.textContent = `Game State: ${window.gameState || 'unknown'}`;
-                }   
-            }, 500);// Remove start message if exists
-        } else {    const startMessage = document.getElementById('start-message');
-            window.debugLog = function() {}; // No-opparentNode) {
-        }               startMessage.parentNode.removeChild(startMessage);
-    </script>       }
+                debugStartBtn.style.zIndex = '9999';
+                
+                debugStartBtn.addEventListener('click', function() {
+                    // Force game to start
+                    window.debugLog('Force starting game...');
                     
-    <script src="js/render-utils.js"></script>
-    <script src="js/input-handler.js"></script>
-    <script src="js/game-enhancement.js"></script>
-    <script src="js/touch-controls.js"></script>s internal state if accessible
-    <script src="game.js"></script>             if (typeof gameState !== 'undefined') {
-</body>                 gameState = 'playing';
-
-</html>                        window.debugLog('Game state set to: playing');
+                    // Remove start message if exists
+                    const startMessage = document.getElementById('start-message');
+                    if (startMessage && startMessage.parentNode) {
+                        startMessage.parentNode.removeChild(startMessage);
+                    }
+                    
+                    // Update global state
+                    window.gameState = 'playing';
+                    
+                    // Update game's internal state if accessible
+                    if (typeof gameState !== 'undefined') {
+                        gameState = 'playing';
+                        window.debugLog('Game state set to: playing');
                     }
                     
                     // Trigger a fake space key press
@@ -117,8 +116,8 @@
                 if (overlay) {
                     const now = new Date();
                     const timestamp = now.getHours().toString().padStart(2, '0') + 
-                                      ':' + now.getMinutes().toString().padStart(2, '0') + 
-                                      ':' + now.getSeconds().toString().padStart(2, '0');
+                                    ':' + now.getMinutes().toString().padStart(2, '0') + 
+                                    ':' + now.getSeconds().toString().padStart(2, '0');
                     
                     const line = document.createElement('div');
                     line.textContent = `[${timestamp}] ${message}`;
@@ -148,6 +147,7 @@
     </script>
     
     <script src="js/render-utils.js"></script>
+    <script src="js/input-handler.js"></script>
     <script src="js/game-enhancement.js"></script>
     <script src="js/touch-controls.js"></script>
     <script src="game.js"></script>
