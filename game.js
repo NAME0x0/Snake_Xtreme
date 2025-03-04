@@ -141,8 +141,19 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         
         menuButton.addEventListener('click', function() {
-            // Navigate to the main menu page
-            window.location.href = 'index1.html';
+            // Fix: Navigate to index.html instead of index1.html which might not exist
+            window.location.href = 'index.html';
+            
+            // Alternative fix: If you have a separate landing page, you can add error handling
+            /*
+            try {
+                window.location.href = 'index.html';
+            } catch(e) {
+                console.error("Navigation error:", e);
+                // Fallback to current directory index
+                window.location.href = './';
+            }
+            */
         });
         
         backToGameButton.addEventListener('click', function() {
