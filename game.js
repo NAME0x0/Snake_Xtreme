@@ -134,11 +134,16 @@ function handleKeyDown(event) {
         window.gameState = 'playing'; // Update global state for touch controls
         gameStartTime = performance.now();
         
-        // Force update the display state and log
+        // CRITICAL FIX: Reset movement timers when the game starts
+        lastMoveTime = performance.now();
+        lastRenderTime = performance.now();
+        
+        // Log snake state to debug console
+        console.log("Current snake state:", JSON.stringify(snake));
         if (typeof debugLog !== 'undefined') {
-            debugLog(`Game state changed to: ${gameState}`);
+            debugLog(`Game started with snake at ${JSON.stringify(snake.segments[0])}`);
         }
-        console.log(`Game started! State: ${gameState}`);
+        
         return;
     }
     
@@ -503,75 +508,128 @@ function showPauseMessage() {
 function initializeGame() {
     console.log("Initializing game");
     
-    // Get difficulty settings
-    difficulty = localStorage.getItem('difficulty') || 'medium';
-    const moveInterval = config.difficulties[difficulty]?.speed || 100;
-    console.log(`Game difficulty: ${difficulty}, Speed: ${moveInterval}ms`);
-    
-    // Initialize RenderUtils if not already done
-    const canvas = document.getElementById('game-canvas');
-    const ctx = canvas.getContext('2d');
-    if (RenderUtils && typeof RenderUtils.init === 'function') {
-        RenderUtils.init(ctx);
+    // Make sure snake is properly initialized
+    if (!snake || !snake.segments || !snake.body) {
+        console.log("Reinitializing snake object");
+        snake = { 
+            segments: [{ x: 10, y: 10 }], 
+            graphics: new PIXI.Graphics(),
+            body: [{ x: 10, y: 10 }],
+            direction: 'RIGHT'
+        };
+        window.snake = snake; // Make available to debug tools
     }
     
-    // Fix: Do a complete canvas clear on initialization
+    // Get difficulty settings from localStorage
+    difficulty = localStorage.getItem('difficulty') || 'medium';
+    const moveInterval = config.difficulties && config.difficulties[difficulty] 
+        ? config.difficulties[difficulty].speed 
+        : 100;
+    
+    console.log(`Game difficulty: ${difficulty}, Speed: ${moveInterval}ms`);
+    
+    // Make sure canvas is valid
+    const canvas = document.getElementById('game-canvas');
+    if (!canvas) {
+        console.error("Canvas element not found!");
+        return;
+    }
+    
+    // Ensure canvas dimensions match grid
+    canvas.width = gridSize * cellSize;
+    canvas.height = gridSize * cellSize;
+    const ctx = canvas.getContext('2d');
+    
+    // Initialize RenderUtils if available
+    if (RenderUtils && typeof RenderUtils.init === 'function') {
+        RenderUtils.init(ctx);
+        console.log("RenderUtils initialized with canvas context");
+    }
+    
+    // Clear canvas thoroughly
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = 'black';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
     
-    // Draw initial state right away
+    // Force immediate drawing of initial state
+    console.log("Drawing initial game state");
     RenderUtils.drawGrid(ctx, gridSize * cellSize, gridSize * cellSize, cellSize);
-    RenderUtils.drawSnake(ctx, snake, cellSize);
     RenderUtils.drawFood(ctx, food, cellSize, Date.now());
+    RenderUtils.drawSnake(ctx, snake, cellSize);
     
-    // Use requestAnimationFrame with throttling for better performance
+    console.log("Setting up game loop");
+    
+    // FIXED GAME LOOP: more reliable and with better logging
     function gameLoop(timestamp) {
+        // Cancel any existing animation frames to avoid duplicates
+        if (animationRequestId) {
+            cancelAnimationFrame(animationRequestId);
+        }
+        
+        // Schedule next frame immediately to ensure continuous loop
+        animationRequestId = requestAnimationFrame(gameLoop);
+        
         // Calculate elapsed time
         const elapsed = timestamp - lastRenderTime;
         
-        // Debug game state periodically (every 3 seconds)
-        if (Math.floor(timestamp / 3000) !== Math.floor(lastRenderTime / 3000)) {
-            console.log(`Game state: ${gameState}, Snake length: ${snake.segments.length}`);
+        // Debug for stuck state
+        if (gameState === 'playing' && timestamp - lastMoveTime > 1000) {
+            console.log("WARNING: Snake hasn't moved for 1 second");
         }
         
-        // Only render if enough time has passed (frame rate limiting)
-        if (elapsed > FRAME_INTERVAL) {
-            lastRenderTime = timestamp - (elapsed % FRAME_INTERVAL);
-            
-            // Add actual game state check
-            if (gameState === 'playing') {
-                // Update game state
-                if (timestamp - lastMoveTime >= moveInterval) {
-                    moveSnake();
-                    lastMoveTime = timestamp;
-                }
+        // Only proceed if enough time has passed for frame rate limiting
+        if (elapsed < FRAME_INTERVAL) {
+            return; // Skip frame for performance
+        }
+        
+        // Update timing
+        lastRenderTime = timestamp;
+        
+        // Get fresh canvas context each frame to ensure it's valid
+        const canvas = document.getElementById('game-canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Always thoroughly clean the canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = 'black';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Check game state and update accordingly
+        if (gameState === 'playing') {
+            // Move the snake if enough time has passed
+            if (timestamp - lastMoveTime >= moveInterval) {
+                // Log before moving
+                console.log(`Moving snake, current pos: ${JSON.stringify(snake.segments[0])}, direction: ${JSON.stringify(direction)}`);
                 
-                // Fix: Clear the entire canvas on each frame
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                moveSnake();
+                lastMoveTime = timestamp;
                 
-                // Render everything in correct order
-                RenderUtils.drawGrid(ctx, gridSize * cellSize, gridSize * cellSize, cellSize);
-                RenderUtils.drawFood(ctx, food, cellSize, timestamp);
-                RenderUtils.drawSnake(ctx, snake, cellSize);
-                
-                // Update particles if there are any
-                if (gameEnhancement && gameEnhancement.particles.length > 0) {
-                    gameEnhancement.updateParticles(ctx);
-                }
-            } else {
-                // If not playing, still draw the static scene
-                if (gameState === 'ready' || gameState === 'paused') {
-                    // Just render the current state without updates
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
-                    RenderUtils.drawGrid(ctx, gridSize * cellSize, gridSize * cellSize, cellSize);
-                    RenderUtils.drawFood(ctx, food, cellSize, timestamp);
-                    RenderUtils.drawSnake(ctx, snake, cellSize);
-                }
+                // Log after moving to verify update
+                console.log(`Snake moved to: ${JSON.stringify(snake.segments[0])}`);
             }
+            
+            // Draw everything (grid, food, snake) - in that order
+            RenderUtils.drawGrid(ctx, canvas.width, canvas.height, cellSize);
+            RenderUtils.drawFood(ctx, food, cellSize, timestamp);
+            RenderUtils.drawSnake(ctx, snake, cellSize);
+            
+            // Draw particles last (on top)
+            if (gameEnhancement && gameEnhancement.particles.length > 0) {
+                gameEnhancement.updateParticles(ctx);
+            }
+        } 
+        else {
+            // Even if not in playing state, still draw the current scene
+            RenderUtils.drawGrid(ctx, canvas.width, canvas.height, cellSize);
+            RenderUtils.drawFood(ctx, food, cellSize, timestamp);
+            RenderUtils.drawSnake(ctx, snake, cellSize);
         }
-        
-        // Continue the loop
-        animationRequestId = requestAnimationFrame(gameLoop);
     }
+    
+    // Log current game state before starting loop
+    console.log(`Initial game state: ${gameState}`);
+    console.log("Snake:", JSON.stringify(snake));
+    console.log("Food:", JSON.stringify(food));
     
     // Start the game loop
     if (animationRequestId) {
@@ -579,7 +637,7 @@ function initializeGame() {
     }
     animationRequestId = requestAnimationFrame(gameLoop);
     
-    // Make sure UI elements are visible
+    // Make sure UI elements are correctly displayed
     updateDisplays();
     
     // Start in 'ready' state, waiting for spacebar
