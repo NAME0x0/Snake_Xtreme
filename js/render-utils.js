@@ -120,176 +120,210 @@ const RenderUtils = (function() {
   // Keep track if WebGL is supported
   const hasWebGL = supportsWebGL();
   
+  // Force debug mode on
+  const debugMode = true;
+  
   // Public API
   return {
-    // Initialize rendering - call this once when game starts
+    // Better initialization with logging
     init: function(ctx) {
-      canvasContext = ctx;
-      // Reset timing variables
-      lastTime = 0;
-      
-      // Ensure canvas is properly configured
-      if (ctx) {
-        // Fix canvas display
-        ctx.canvas.style.display = 'block';
-        
-        // Set initial state
-        ctx.imageSmoothingEnabled = false; // sharper pixel rendering
-        
-        console.log('RenderUtils initialized with canvas context');
-      } else {
-        console.error('No canvas context provided for RenderUtils');
-      }
-    },
-    
-    // Draw snake segments with improved visibility and style
-    drawSnake: function(ctx, snake, cellSize) {
-      if (!ctx || !snake || !snake.body || snake.body.length === 0) {
-        console.error('Cannot draw snake: invalid parameters');
+      if (!ctx) {
+        console.error('Cannot initialize RenderUtils: No context provided');
         return;
       }
       
-      // Log to ensure this is being called
-      console.log(`Drawing snake with ${snake.body.length} segments`);
+      console.log('RenderUtils initializing with canvas context');
+      canvasContext = ctx;
       
+      // Reset timing variables
+      lastTime = 0;
+      
+      // Set canvas properties for better rendering
+      ctx.canvas.style.display = 'block';
+      ctx.imageSmoothingEnabled = false; // Sharper pixels
+      
+      // Force a solid background
+      ctx.fillStyle = '#000000';
+      ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+      
+      // Test draw a square to verify ctx is working
+      if (debugMode) {
+        ctx.fillStyle = 'red';
+        ctx.fillRect(10, 10, 20, 20);
+        ctx.fillStyle = 'green';
+        ctx.fillRect(40, 10, 20, 20);
+        ctx.fillStyle = 'blue';
+        ctx.fillRect(70, 10, 20, 20);
+        console.log('Test shapes drawn on canvas');
+      }
+    },
+    
+    // Make the snake much more visible for debugging
+    drawSnake: function(ctx, snake, cellSize) {
+      if (!ctx) {
+        console.error('Cannot draw snake: No context provided');
+        return;
+      }
+      
+      if (!snake || !snake.body || snake.body.length === 0) {
+        console.error('Cannot draw snake: Invalid snake data', snake);
+        return;
+      }
+      
+      console.log(`Drawing snake with ${snake.body.length} segments at ${JSON.stringify(snake.body[0])}`);
+      
+      // Save context state
       ctx.save();
       
-      // More visible snake colors
-      const headColor = '#7FFF00'; // Bright green for head
-      const bodyColor = '#32CD32'; // Lime green for body
+      // Draw debug outline for game area
+      if (debugMode) {
+        ctx.strokeStyle = 'red';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+      }
       
-      // Draw body segments (back to front)
+      // Very visible snake segments
       for (let i = snake.body.length - 1; i >= 0; i--) {
         const segment = snake.body[i];
         const isHead = i === 0;
         
-        ctx.fillStyle = isHead ? headColor : bodyColor;
-        
-        // Draw segments slightly larger to ensure visibility
-        // Use fixed drawing instead of the wave effect for troubleshooting
-        this.drawRoundRect(
-          ctx, 
-          segment.x * cellSize + 1, // +1 for better visibility 
-          segment.y * cellSize + 1, 
-          cellSize - 2, 
-          cellSize - 2, 
-          isHead ? 4 : 2
-        );
-        
-        // Draw segment border for better visibility
-        ctx.strokeStyle = '#000000';
-        ctx.lineWidth = 1;
-        ctx.strokeRect(
-          segment.x * cellSize + 1,
-          segment.y * cellSize + 1,
-          cellSize - 2,
-          cellSize - 2
-        );
-      }
-      
-      // Only draw eyes if the head exists
-      if (snake.body.length > 0) {
-        // Draw eyes for the head
-        const head = snake.body[0];
-        ctx.fillStyle = 'black';
-        
-        // Direction-based eyes
-        const eyeSize = cellSize / 6;
-        let eyeX1, eyeX2, eyeY1, eyeY2;
-        
-        // Set eye positions based on direction
-        switch (snake.direction) {
-          case 'UP':
-            eyeX1 = head.x * cellSize + cellSize / 3;
-            eyeX2 = head.x * cellSize + cellSize * 2/3;
-            eyeY1 = eyeY2 = head.y * cellSize + cellSize / 3;
-            break;
-          case 'DOWN':
-            eyeX1 = head.x * cellSize + cellSize / 3;
-            eyeX2 = head.x * cellSize + cellSize * 2/3;
-            eyeY1 = eyeY2 = head.y * cellSize + cellSize * 2/3;
-            break;
-          case 'LEFT':
-            eyeX1 = eyeX2 = head.x * cellSize + cellSize / 3;
-            eyeY1 = head.y * cellSize + cellSize / 3;
-            eyeY2 = head.y * cellSize + cellSize * 2/3;
-            break;
-          case 'RIGHT':
-          default:
-            eyeX1 = eyeX2 = head.x * cellSize + cellSize * 2/3;
-            eyeY1 = head.y * cellSize + cellSize / 3;
-            eyeY2 = head.y * cellSize + cellSize * 2/3;
-            break;
+        // Verify segment coordinates
+        if (segment.x === undefined || segment.y === undefined) {
+          console.error(`Invalid segment at index ${i}:`, segment);
+          continue;
         }
         
-        // Draw both eyes in a single path for better performance
-        ctx.beginPath();
-        ctx.arc(eyeX1, eyeY1, eyeSize, 0, Math.PI * 2);
-        ctx.arc(eyeX2, eyeY2, eyeSize, 0, Math.PI * 2);
-        ctx.fill();
+        // Calculate positions
+        const x = segment.x * cellSize;
+        const y = segment.y * cellSize;
+        
+        // Log first and last segment positions
+        if (i === 0 || i === snake.body.length - 1) {
+          console.log(`Segment ${i}: x=${x}, y=${y}, gridX=${segment.x}, gridY=${segment.y}`);
+        }
+        
+        // Fill with bright colors
+        if (isHead) {
+          ctx.fillStyle = '#FF2020'; // Bright red head
+        } else {
+          ctx.fillStyle = i % 2 === 0 ? '#20FF20' : '#50FF50'; // Alternating green bodies
+        }
+        
+        // Draw a solid rectangle for each segment
+        ctx.fillRect(x + 1, y + 1, cellSize - 2, cellSize - 2);
+        
+        // Add segment border
+        ctx.strokeStyle = 'white';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(x + 1, y + 1, cellSize - 2, cellSize - 2);
+        
+        // Highlight the head with special marking
+        if (isHead) {
+          // Draw eyes based on direction
+          const eyeSize = cellSize / 5;
+          ctx.fillStyle = 'white';
+          
+          // Draw the eyes on the head
+          let eyeX1, eyeX2, eyeY1, eyeY2;
+          
+          switch (snake.direction) {
+            case 'UP':
+              eyeX1 = x + cellSize / 3;
+              eyeX2 = x + cellSize * 2/3;
+              eyeY1 = eyeY2 = y + cellSize / 4;
+              break;
+            case 'DOWN':
+              eyeX1 = x + cellSize / 3;
+              eyeX2 = x + cellSize * 2/3;
+              eyeY1 = eyeY2 = y + cellSize * 3/4;
+              break;
+            case 'LEFT':
+              eyeX1 = eyeX2 = x + cellSize / 4;
+              eyeY1 = y + cellSize / 3;
+              eyeY2 = y + cellSize * 2/3;
+              break;
+            case 'RIGHT':
+            default:
+              eyeX1 = eyeX2 = x + cellSize * 3/4;
+              eyeY1 = y + cellSize / 3;
+              eyeY2 = y + cellSize * 2/3;
+          }
+          
+          // Draw more visible eyes
+          ctx.beginPath();
+          ctx.arc(eyeX1, eyeY1, eyeSize, 0, Math.PI * 2);
+          ctx.arc(eyeX2, eyeY2, eyeSize, 0, Math.PI * 2);
+          ctx.fill();
+          
+          // Black pupils
+          ctx.fillStyle = 'black';
+          ctx.beginPath();
+          ctx.arc(eyeX1, eyeY1, eyeSize/2, 0, Math.PI * 2);
+          ctx.arc(eyeX2, eyeY2, eyeSize/2, 0, Math.PI * 2);
+          ctx.fill();
+        }
       }
       
+      // Restore context state
       ctx.restore();
     },
     
-    // Draw pulsating food with retro effect - optimized
+    // Make food very visible
     drawFood: function(ctx, food, cellSize, time) {
-      if (!ctx || !food) return;
+      if (!ctx || !food) {
+        console.error('Cannot draw food:', !ctx ? 'No context' : 'No food data');
+        return;
+      }
+      
+      console.log(`Drawing food at x=${food.x}, y=${food.y}`);
       
       ctx.save();
       
-      // Calculate pulse only when necessary using modulo for performance
-      const timeIndex = Math.floor(time / 30) % sinTableSize;
-      const pulseFactor = 1 + getSinValue(timeIndex, 0.1);
-      const adjustedSize = cellSize * pulseFactor;
+      // Simple but very visible food
+      const x = food.x * cellSize;
+      const y = food.y * cellSize;
       
-      ctx.fillStyle = '#FF6347';
+      // Draw a bright food item
+      ctx.fillStyle = '#FF00FF'; // Magenta for high visibility
+      ctx.fillRect(x + 2, y + 2, cellSize - 4, cellSize - 4);
       
-      // Star shape for food
-      const centerX = food.x * cellSize + cellSize / 2;
-      const centerY = food.y * cellSize + cellSize / 2;
-      const spikes = 5;
-      const outerRadius = adjustedSize / 2;
-      const innerRadius = adjustedSize / 4;
-      
-      ctx.beginPath();
-      
-      // Pre-calculate angles for better performance
-      const angleStep = Math.PI / spikes;
-      
-      for (let i = 0; i < spikes * 2; i++) {
-        const radius = i % 2 === 0 ? outerRadius : innerRadius;
-        const angle = angleStep * i;
-        
-        // Reuse point object instead of creating new ones
-        reusablePoint.x = centerX + Math.cos(angle) * radius;
-        reusablePoint.y = centerY + Math.sin(angle) * radius;
-        
-        if (i === 0) {
-          ctx.moveTo(reusablePoint.x, reusablePoint.y);
-        } else {
-          ctx.lineTo(reusablePoint.x, reusablePoint.y);
-        }
-      }
-      
-      ctx.closePath();
-      ctx.fill();
+      // Add a pulsing glow
+      const pulseAmount = 0.5 + Math.sin(time / 200) * 0.2;
+      ctx.strokeStyle = `rgba(255, 255, 255, ${pulseAmount})`;
+      ctx.lineWidth = 2;
+      ctx.strokeRect(x, y, cellSize, cellSize);
       
       ctx.restore();
     },
     
-    // Draw game grid with retro fading effect - only update when needed
+    // Draw a very clear grid for debugging
     drawGrid: function(ctx, width, height, cellSize) {
       if (!ctx) return;
       
-      // Always draw grid for troubleshooting
+      // Draw grid immediately for debugging purposes
       ctx.save();
       
-      // More visible grid
-      ctx.strokeStyle = 'rgba(50, 205, 50, 0.3)'; // Brighter grid
-      ctx.lineWidth = 1;
+      // Clear background first
+      ctx.fillStyle = 'black';
+      ctx.fillRect(0, 0, width, height);
       
-      // Vertical lines
+      // Draw numbered grid for debugging
+      if (debugMode) {
+        ctx.font = '8px monospace';
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+        
+        for (let x = 0; x < width/cellSize; x++) {
+          for (let y = 0; y < height/cellSize; y++) {
+            ctx.fillText(`${x},${y}`, x * cellSize + 2, y * cellSize + 8);
+          }
+        }
+      }
+      
+      // Draw main grid
+      ctx.strokeStyle = 'rgba(50, 205, 50, 0.3)'; // Green grid
+      ctx.lineWidth = 0.5;
+      
+      // Draw vertical lines
       for (let x = 0; x <= width; x += cellSize) {
         ctx.beginPath();
         ctx.moveTo(x, 0);
@@ -297,7 +331,7 @@ const RenderUtils = (function() {
         ctx.stroke();
       }
       
-      // Horizontal lines
+      // Draw horizontal lines
       for (let y = 0; y <= height; y += cellSize) {
         ctx.beginPath();
         ctx.moveTo(0, y);
@@ -305,7 +339,16 @@ const RenderUtils = (function() {
         ctx.stroke();
       }
       
+      // Draw canvas border for debugging
+      if (debugMode) {
+        ctx.strokeStyle = '#FF5500';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(0, 0, width, height);
+      }
+      
       ctx.restore();
+      
+      console.log(`Grid drawn: ${width}×${height}, cellSize=${cellSize}`);
     },
     
     // Helper for drawing rounded rectangles - optimized and safer

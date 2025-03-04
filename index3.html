@@ -54,26 +54,92 @@
         const debugMode = true;
         if (debugMode) {
             document.getElementById('debug-overlay').style.display = 'block';
+            // Make sure debug overlay is visible
+            // Log function that shows in overlayLoaded', function() {
+            window.debugLog = function(message) {ntById('debug-overlay');
+                console.log(message);
+                const overlay = document.getElementById('debug-overlay');
+                if (overlay) {ugLog('Debug mode enabled');
+                    const line = document.createElement('div');ss...');
+                    line.textContent = message;
+                    overlay.appendChild(line);
+                    if (overlay.children.length > 10) {for testing
+                        overlay.removeChild(overlay.children[0]);ton');
+                    }StartBtn.textContent = 'Force Start Game';
+                }ebugStartBtn.style.position = 'fixed';
+            };  debugStartBtn.style.bottom = '50px';
+                debugStartBtn.style.right = '20px';
+            // State indicatorstyle.zIndex = '9999';
+            setInterval(() => {
+                const indicator = document.querySelector('.game-state-indicator');
+                if (indicator) {e to start
+                    indicator.textContent = `Game State: ${window.gameState || 'unknown'}`;
+                }   
+            }, 500);// Remove start message if exists
+        } else {    const startMessage = document.getElementById('start-message');
+            window.debugLog = function() {}; // No-opparentNode) {
+        }               startMessage.parentNode.removeChild(startMessage);
+    </script>       }
+                    
+    <script src="js/render-utils.js"></script>
+    <script src="js/input-handler.js"></script>
+    <script src="js/game-enhancement.js"></script>
+    <script src="js/touch-controls.js"></script>s internal state if accessible
+    <script src="game.js"></script>             if (typeof gameState !== 'undefined') {
+</body>                 gameState = 'playing';
+
+</html>                        window.debugLog('Game state set to: playing');
+                    }
+                    
+                    // Trigger a fake space key press
+                    const spaceEvent = new KeyboardEvent('keydown', {
+                        key: ' ',
+                        code: 'Space',
+                        which: 32,
+                        keyCode: 32,
+                        bubbles: true
+                    });
+                    document.dispatchEvent(spaceEvent);
+                });
+                
+                document.body.appendChild(debugStartBtn);
+                
+                // Monitor all key presses
+                document.addEventListener('keydown', function(e) {
+                    window.debugLog(`Key pressed: ${e.key} (code: ${e.code})`);
+                });
+            });
             
-            // Log function that shows in overlay
+            // Improved debug logger
             window.debugLog = function(message) {
                 console.log(message);
                 const overlay = document.getElementById('debug-overlay');
                 if (overlay) {
+                    const now = new Date();
+                    const timestamp = now.getHours().toString().padStart(2, '0') + 
+                                      ':' + now.getMinutes().toString().padStart(2, '0') + 
+                                      ':' + now.getSeconds().toString().padStart(2, '0');
+                    
                     const line = document.createElement('div');
-                    line.textContent = message;
+                    line.textContent = `[${timestamp}] ${message}`;
                     overlay.appendChild(line);
-                    if (overlay.children.length > 10) {
+                    
+                    // Auto-scroll and limit entries
+                    overlay.scrollTop = overlay.scrollHeight;
+                    if (overlay.children.length > 15) {
                         overlay.removeChild(overlay.children[0]);
                     }
                 }
             };
             
-            // State indicator
+            // Better state indicator
             setInterval(() => {
                 const indicator = document.querySelector('.game-state-indicator');
                 if (indicator) {
-                    indicator.textContent = `Game State: ${window.gameState || 'unknown'}`;
+                    const state = window.gameState || 'unknown';
+                    const snakeInfo = window.snake ? 
+                        `Snake: ${window.snake.segments ? window.snake.segments.length : 'N/A'} segments` : 'No snake';
+                    indicator.innerHTML = `Game State: <b>${state}</b><br>${snakeInfo}`;
                 }
             }, 500);
         } else {

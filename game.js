@@ -28,6 +28,12 @@ const FRAME_INTERVAL = 1000 / FRAME_RATE_LIMIT;
 // Add missing declaration for touchControls
 let touchControls = null;
 
+// Add global variable to track if init has completed
+let gameInitialized = false;
+
+// Fix gameState global exposure
+window.gameState = 'ready';
+
 // Load configuration
 fetch('config.xml')
     .then(response => response.text())
@@ -48,32 +54,157 @@ fetch('config.xml')
 
 // Initialize game enhancement with error handling
 document.addEventListener('DOMContentLoaded', function() {
+    console.log("DOM Content loaded");
+
     try {
         // Initialize RenderUtils first
         const canvas = document.getElementById('game-canvas');
         const ctx = canvas.getContext('2d');
         if (RenderUtils && typeof RenderUtils.init === 'function') {
             RenderUtils.init(ctx);
+            console.log("RenderUtils initialized");
         }
         
         // Then initialize game enhancement
         gameEnhancement = new GameEnhancement(document.getElementById('game-container'));
+        console.log("GameEnhancement initialized");
         
         // Show start message
         showStartMessage();
+        console.log("Start message shown");
         
-        // Setup event listeners after DOM is fully loaded
+        // Configure event listeners directly here for immediate binding
+        document.addEventListener('keydown', handleKeyDown);
+        console.log("Key event listener attached");
+        
+        // Setup other event listeners after DOM is fully loaded
         setupEventListeners();
+        console.log("Event listeners set up");
         
         // Initialize touch controls last (after other UI is set up)
         initializeTouchControls();
+        console.log("Touch controls initialized");
+        
+        // Mark initialization complete
+        gameInitialized = true;
+        console.log("Game initialization complete");
+        
+        // Draw initial state
+        if (canvas && ctx) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            RenderUtils.drawGrid(ctx, gridSize * cellSize, gridSize * cellSize, cellSize);
+            RenderUtils.drawSnake(ctx, snake, cellSize);
+            RenderUtils.drawFood(ctx, food, cellSize, Date.now());
+        }
     } catch (error) {
         console.error("Error initializing game:", error);
         // Provide fallback initialization to ensure game works
         showStartMessage();
-        setupEventListeners();
+        // Direct binding as fallback
+        document.addEventListener('keydown', handleKeyDown);
     }
 });
+
+// Move the key handler out to a named function for easier binding/unbinding
+function handleKeyDown(event) {
+    // Debug for key press
+    console.log(`Key pressed: ${event.key}, code: ${event.code}, state: ${gameState}`);
+    
+    // Fix: Handle Space key correctly (both code and key for compatibility)
+    if ((event.code === 'Space' || event.key === ' ') && 
+        (gameState === 'ready' || gameState === 'gameover')) {
+        
+        console.log('Space pressed, attempting to start game!');
+        
+        if (gameState === 'gameover') {
+            resetGame();
+            gameOverScreen.style.display = 'none';
+            console.log('Game reset after game over');
+        }
+        
+        // Remove start message if exists
+        const startMessage = document.getElementById('start-message');
+        if (startMessage && startMessage.parentNode) {
+            startMessage.parentNode.removeChild(startMessage);
+            console.log('Start message removed');
+        }
+        
+        // Update states
+        gameState = 'playing';
+        window.gameState = 'playing'; // Update global state for touch controls
+        gameStartTime = performance.now();
+        
+        // Force update the display state and log
+        if (typeof debugLog !== 'undefined') {
+            debugLog(`Game state changed to: ${gameState}`);
+        }
+        console.log(`Game started! State: ${gameState}`);
+        return;
+    }
+    
+    // Direction controls - only process when playing
+    if (gameState === 'playing') {
+        console.log("Processing direction key");
+        switch (event.key) {
+            case 'ArrowUp': 
+            case 'w':
+            case 'W':
+                if (direction.y !== 1) {
+                    nextDirection = { x: 0, y: -1 };
+                    console.log("Direction changed to UP");
+                }
+                break;
+            case 'ArrowDown': 
+            case 's':
+            case 'S':
+                if (direction.y !== -1) {
+                    nextDirection = { x: 0, y: 1 };
+                    console.log("Direction changed to DOWN");
+                }
+                break;
+            case 'ArrowLeft': 
+            case 'a':
+            case 'A':
+                if (direction.x !== 1) {
+                    nextDirection = { x: -1, y: 0 };
+                    console.log("Direction changed to LEFT");
+                }
+                break;
+            case 'ArrowRight': 
+            case 'd': 
+            case 'D':
+                if (direction.x !== -1) {
+                    nextDirection = { x: 1, y: 0 };
+                    console.log("Direction changed to RIGHT");
+                }
+                break;
+        }
+    }
+    
+    // Rest of the key handler for pause, etc.
+    // Handle ESC key to pause/resume
+    if (event.code === 'Escape' && (gameState === 'playing' || gameState === 'paused')) {
+        if (gameState === 'playing') {
+            gameState = 'paused';
+            showPauseMessage();
+        } else {
+            gameState = 'playing';
+            const pauseMessage = document.getElementById('pause-message');
+            if (pauseMessage) {
+                pauseMessage.remove();
+            }
+        }
+        return;
+    }
+    
+    // Cheat code detection
+    cheatCode += event.key.toLowerCase();
+    if (cheatCode.includes('iddqd')) {
+        invincibility = true;
+        showTemporaryMessage('Cheat: Invincibility ON!', 1500);
+        cheatCode = '';
+    }
+}
 
 // Pixi.js setup
 app = new PIXI.Application({
@@ -259,87 +390,11 @@ function showStartMessage() {
 
 // Consolidated event listeners
 function setupEventListeners() {
-    // Remove existing event listener if present to avoid duplicates
-    if (eventHandlers.keydown) {
-        document.removeEventListener('keydown', eventHandlers.keydown);
-    }
+    // Remove any existing keydown handlers to prevent duplicates
+    document.removeEventListener('keydown', handleKeyDown);
     
-    eventHandlers.keydown = function(event) {
-        // Fix: Handle Space key correctly (both code and key for compatibility)
-        if ((event.code === 'Space' || event.key === ' ') && 
-            (gameState === 'ready' || gameState === 'gameover')) {
-            
-            // Log to ensure this is being called
-            console.log('Space pressed, game starting!');
-            
-            if (gameState === 'gameover') {
-                resetGame();
-                gameOverScreen.style.display = 'none';
-            }
-            
-            // Remove start message if exists
-            const startMessage = document.getElementById('start-message');
-            if (startMessage) {
-                startMessage.remove();
-            }
-            
-            gameState = 'playing';
-            window.gameState = 'playing'; // Update global state
-            gameStartTime = performance.now();
-            return;
-        }
-        
-        // Handle ESC key to pause/resume
-        if (event.code === 'Escape' && (gameState === 'playing' || gameState === 'paused')) {
-            if (gameState === 'playing') {
-                gameState = 'paused';
-                showPauseMessage();
-            } else {
-                gameState = 'playing';
-                const pauseMessage = document.getElementById('pause-message');
-                if (pauseMessage) {
-                    pauseMessage.remove();
-                }
-            }
-            return;
-        }
-        
-        // Direction controls
-        if (gameState === 'playing') {
-            switch (event.key) {
-                case 'ArrowUp': 
-                case 'w':
-                case 'W':
-                    if (direction.y !== 1) nextDirection = { x: 0, y: -1 }; 
-                    break;
-                case 'ArrowDown': 
-                case 's':
-                case 'S':
-                    if (direction.y !== -1) nextDirection = { x: 0, y: 1 }; 
-                    break;
-                case 'ArrowLeft': 
-                case 'a':
-                case 'A':
-                    if (direction.x !== 1) nextDirection = { x: -1, y: 0 }; 
-                    break;
-                case 'ArrowRight': 
-                case 'd': 
-                case 'D':
-                    if (direction.x !== -1) nextDirection = { x: 1, y: 0 }; 
-                    break;
-            }
-        }
-        
-        // Cheat code detection
-        cheatCode += event.key.toLowerCase();
-        if (cheatCode.includes('iddqd')) {
-            invincibility = true;
-            showTemporaryMessage('Cheat: Invincibility ON!', 1500);
-            cheatCode = '';
-        }
-    };
-    
-    document.addEventListener('keydown', eventHandlers.keydown);
+    // Add our new handler (already added in DOMContentLoaded, but ensure it's there)
+    document.addEventListener('keydown', handleKeyDown);
     
     // Setup button event listeners
     const buttonElements = {
@@ -446,9 +501,12 @@ function showPauseMessage() {
 
 // Game loop - optimize rendering
 function initializeGame() {
+    console.log("Initializing game");
+    
     // Get difficulty settings
     difficulty = localStorage.getItem('difficulty') || 'medium';
     const moveInterval = config.difficulties[difficulty]?.speed || 100;
+    console.log(`Game difficulty: ${difficulty}, Speed: ${moveInterval}ms`);
     
     // Initialize RenderUtils if not already done
     const canvas = document.getElementById('game-canvas');
@@ -460,15 +518,26 @@ function initializeGame() {
     // Fix: Do a complete canvas clear on initialization
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
+    // Draw initial state right away
+    RenderUtils.drawGrid(ctx, gridSize * cellSize, gridSize * cellSize, cellSize);
+    RenderUtils.drawSnake(ctx, snake, cellSize);
+    RenderUtils.drawFood(ctx, food, cellSize, Date.now());
+    
     // Use requestAnimationFrame with throttling for better performance
     function gameLoop(timestamp) {
         // Calculate elapsed time
         const elapsed = timestamp - lastRenderTime;
         
+        // Debug game state periodically (every 3 seconds)
+        if (Math.floor(timestamp / 3000) !== Math.floor(lastRenderTime / 3000)) {
+            console.log(`Game state: ${gameState}, Snake length: ${snake.segments.length}`);
+        }
+        
         // Only render if enough time has passed (frame rate limiting)
         if (elapsed > FRAME_INTERVAL) {
             lastRenderTime = timestamp - (elapsed % FRAME_INTERVAL);
             
+            // Add actual game state check
             if (gameState === 'playing') {
                 // Update game state
                 if (timestamp - lastMoveTime >= moveInterval) {
@@ -476,16 +545,26 @@ function initializeGame() {
                     lastMoveTime = timestamp;
                 }
                 
-                // Fix: Full clear on each frame
+                // Fix: Clear the entire canvas on each frame
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 
-                // Render only what's needed
-                drawSnake();
-                drawFood();
+                // Render everything in correct order
+                RenderUtils.drawGrid(ctx, gridSize * cellSize, gridSize * cellSize, cellSize);
+                RenderUtils.drawFood(ctx, food, cellSize, timestamp);
+                RenderUtils.drawSnake(ctx, snake, cellSize);
                 
                 // Update particles if there are any
                 if (gameEnhancement && gameEnhancement.particles.length > 0) {
                     gameEnhancement.updateParticles(ctx);
+                }
+            } else {
+                // If not playing, still draw the static scene
+                if (gameState === 'ready' || gameState === 'paused') {
+                    // Just render the current state without updates
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    RenderUtils.drawGrid(ctx, gridSize * cellSize, gridSize * cellSize, cellSize);
+                    RenderUtils.drawFood(ctx, food, cellSize, timestamp);
+                    RenderUtils.drawSnake(ctx, snake, cellSize);
                 }
             }
         }
@@ -507,12 +586,16 @@ function initializeGame() {
     gameState = 'ready';
     window.gameState = 'ready'; // Update global state
     showStartMessage();
+    
+    console.log("Game initialized, ready to start");
 }
 
 // Movement logic with enhanced effects
 function moveSnake() {
     direction = { ...nextDirection };
     let head = { x: snake.segments[0].x + direction.x, y: snake.segments[0].y + direction.y };
+
+    console.log(`Snake moving: direction = ${JSON.stringify(direction)}, head = ${JSON.stringify(head)}`);
 
     if (gameMode === 'no-walls') {
         head.x = (head.x + gridSize) % gridSize;
@@ -570,6 +653,9 @@ function moveSnake() {
     }
     checkAchievements();
     updateDisplays();
+
+    // Update the snake.body reference for rendering
+    snake.body = snake.segments.map(seg => ({ x: seg.x, y: seg.y }));
 }
 
 // Achievements logic - show notifications instead of alerts
