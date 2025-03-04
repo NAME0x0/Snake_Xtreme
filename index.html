@@ -4,23 +4,45 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Snake Xtreme</title>
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            background-color: #000;
-        }
-    </style>
-    <script>
-        // Redirect to the menu page
-        window.location.href = 'index1.html';
-    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <noscript>
-        <p style="color: #0f0; text-align: center; margin-top: 50px; font-family: monospace;">
-            JavaScript is required to play Snake Xtreme. Please enable JavaScript and <a href="index1.html" style="color: #0f0;">click here</a> to continue.
-        </p>
-    </noscript>
+    <div id="game-container">
+        <div class="game-header">
+            <h1>SNAKE XTREME</h1>
+        </div>
+        
+        <canvas id="game-canvas"></canvas>
+        
+        <div id="ui" class="game-ui">
+            <div id="score">Score: 0</div>
+            <div id="high-score">High Score: 0</div>
+            <div id="achievements">Achievements: 0/3</div>
+            <div id="coins">Coins: 0</div>
+        </div>
+        
+        <div id="game-over-screen" style="display: none;" class="game-ui">
+            <h2>Game Over</h2>
+            <p class="big-score">Score: <span id="final-score">0</span></p>
+            <p>High Score: <span id="high-score-display">0</span></p>
+            
+            <div class="game-over-buttons">
+                <button id="restart-button">Restart</button>
+                <button id="leaderboard-button">Leaderboard</button>
+                <button id="menu-button">Main Menu</button>
+            </div>
+            
+            <p class="restart-hint">Press SPACE to restart</p>
+        </div>
+        
+        <div id="leaderboard" style="display: none;" class="game-ui">
+            <h2>Leaderboard</h2>
+            <ul id="leaderboard-list"></ul>
+            <button id="back-to-game">Back</button>
+        </div>
+    </div>
+    
+    <script src="game.js"></script>
 </body>
 </html>
