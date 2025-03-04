@@ -141,8 +141,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         
         menuButton.addEventListener('click', function() {
-            // In a real app, you'd navigate to the menu
-            console.log('Back to menu clicked');
+            // Navigate to the main menu page
+            window.location.href = 'index1.html';
         });
         
         backToGameButton.addEventListener('click', function() {
