@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gameConfig>
+    <snakeColors>
+        <color name="green" price="0" hex="#00ff00" />
+        <color name="red" price="50" hex="#ff0000" />
+        <color name="blue" price="100" hex="#0000ff" />
+    </snakeColors>
+    <difficulties>
+        <difficulty level="easy" speed="150" />
+        <difficulty level="medium" speed="100" />
+        <difficulty level="hard" speed="75" />
+    </difficulties>
+</gameConfig>
