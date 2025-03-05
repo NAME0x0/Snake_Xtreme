@@ -108,6 +108,21 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Set up event listeners
         setupEventListeners();
+        
+        // Create achievement notification container
+        createAchievementContainer();
+    }
+    
+    // Create a container for achievement notifications
+    function createAchievementContainer() {
+        const container = document.createElement('div');
+        container.id = 'achievement-container';
+        container.style.position = 'absolute';
+        container.style.top = '10px';
+        container.style.right = '10px';
+        container.style.width = '250px';
+        container.style.zIndex = '30';
+        document.getElementById('game-container').appendChild(container);
     }
     
     // Update display elements
@@ -141,19 +156,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         
         menuButton.addEventListener('click', function() {
-            // Fix: Navigate to index.html instead of index1.html which might not exist
-            window.location.href = 'index.html';
-            
-            // Alternative fix: If you have a separate landing page, you can add error handling
-            /*
-            try {
-                window.location.href = 'index.html';
-            } catch(e) {
-                console.error("Navigation error:", e);
-                // Fallback to current directory index
-                window.location.href = './';
-            }
-            */
+            // Fix: Just reload the current page to go back to main menu
+            window.location.reload();
         });
         
         backToGameButton.addEventListener('click', function() {
@@ -681,17 +685,53 @@ document.addEventListener('DOMContentLoaded', () => {
     function checkAchievements() {
         if (score >= 100 && !achievements.score100) {
             achievements.score100 = true;
-            showMessage('Achievement: Score 100!', 2000);
+            showAchievementNotification('Achievement: Score 100!');
         }
         if (powerUpCount >= 5 && !achievements.powerUp5) {
             achievements.powerUp5 = true;
-            showMessage('Achievement: Collect 5 Power-Ups!', 2000);
+            showAchievementNotification('Achievement: Collect 5 Power-Ups!');
         }
         if (Date.now() - gameStartTime >= 300000 && !achievements.survive5Min) {
             achievements.survive5Min = true;
-            showMessage('Achievement: Survive 5 Minutes!', 2000);
+            showAchievementNotification('Achievement: Survive 5 Minutes!');
         }
         localStorage.setItem('achievements', JSON.stringify(achievements));
+    }
+    
+    // Show achievement notification
+    function showAchievementNotification(message) {
+        const container = document.getElementById('achievement-container');
+        const notification = document.createElement('div');
+        notification.className = 'achievement-notification';
+        notification.innerHTML = message;
+        notification.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+        notification.style.color = '#0f0';
+        notification.style.padding = '10px';
+        notification.style.margin = '5px 0';
+        notification.style.borderRadius = '5px';
+        notification.style.border = '2px solid #0f0';
+        notification.style.boxShadow = '0 0 10px rgba(0, 255, 0, 0.5)';
+        notification.style.transition = 'all 0.3s ease';
+        notification.style.opacity = '0';
+        notification.style.transform = 'translateX(50px)';
+        
+        container.appendChild(notification);
+        
+        // Show animation
+        setTimeout(() => {
+            notification.style.opacity = '1';
+            notification.style.transform = 'translateX(0)';
+        }, 50);
+        
+        // Remove after delay
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            notification.style.transform = 'translateX(50px)';
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 300);
+        }, 3000);
     }
     
     // Update leaderboard

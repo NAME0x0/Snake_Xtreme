@@ -251,6 +251,25 @@ h2 {
     opacity: 0.2;
 }
 
+/* Achievement notification */
+#achievement-container {
+    pointer-events: none;
+}
+
+.achievement-notification {
+    font-family: 'Press Start 2P', cursive, monospace;
+    font-size: 12px;
+    text-transform: uppercase;
+    animation: achievement-glow 2s infinite;
+    max-width: 100%;
+}
+
+@keyframes achievement-glow {
+    0% { box-shadow: 0 0 5px rgba(0, 255, 0, 0.5); }
+    50% { box-shadow: 0 0 15px rgba(0, 255, 0, 0.8); }
+    100% { box-shadow: 0 0 5px rgba(0, 255, 0, 0.5); }
+}
+
 /* Responsive design */
 @media (max-width: 600px) {
     #ui {
@@ -271,5 +290,10 @@ h2 {
     .game-message {
         font-size: 14px;
         padding: 15px;
+    }
+    
+    .achievement-notification {
+        font-size: 10px;
+        padding: 8px;
     }
 }
