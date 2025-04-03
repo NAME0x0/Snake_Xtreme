@@ -1,0 +1,108 @@
+{
+  "snakeColors": [
+    {
+      "name": "Green",
+      "value": "#0f0",
+      "price": 0,
+      "purchased": true
+    },
+    {
+      "name": "Blue",
+      "value": "#00f",
+      "price": 100,
+      "purchased": false
+    },
+    {
+      "name": "Red",
+      "value": "#f00",
+      "price": 200,
+      "purchased": false
+    },
+    {
+      "name": "Yellow",
+      "value": "#ff0",
+      "price": 300,
+      "purchased": false
+    },
+    {
+      "name": "Purple",
+      "value": "#a0f",
+      "price": 400,
+      "purchased": false
+    },
+    {
+      "name": "Cyan",
+      "value": "#0ff",
+      "price": 500,
+      "purchased": false
+    },
+    {
+      "name": "Orange",
+      "value": "#f90",
+      "price": 600,
+      "purchased": false
+    },
+    {
+      "name": "Pink",
+      "value": "#f0a",
+      "price": 700,
+      "purchased": false
+    },
+    {
+      "name": "White",
+      "value": "#fff",
+      "price": 800,
+      "purchased": false
+    },
+    {
+      "name": "Rainbow",
+      "value": "rainbow",
+      "price": 1000,
+      "purchased": false
+    }
+  ],
+  "difficulties": [
+    {
+      "level": "easy",
+      "speed": 150
+    },
+    {
+      "level": "medium",
+      "speed": 100
+    },
+    {
+      "level": "hard",
+      "speed": 75
+    }
+  ],
+  "gridSize": 20,
+  "cellSize": 20,
+  "initialSpeed": 150,
+  "colors": {
+    "background": "#000000",
+    "snake": "#0f0",
+    "head": "#00ff00",
+    "food": "#ff0000",
+    "bonus": "#ff8800",
+    "special": "#ff00ff",
+    "obstacle": "#888888",
+    "grid": "#333333",
+    "powerUps": {
+      "speed": "#ffff00",
+      "slow": "#0088ff",
+      "invincible": "#ffffff",
+      "scoreMultiplier": "#ff00ff",
+      "shrink": "#00ffff"
+    }
+  },
+  "soundVolume": 70,
+  "particleEffects": "medium",
+  "gridVisibility": true,
+  "crtEffect": true,
+  "highContrast": false,
+  "timeAttackDuration": 60,
+  "powerUpChance": 0.3,
+  "powerUpDuration": 5000,
+  "leaderboardMaxSize": 5,
+  "mazeObstaclePercentage": 0.1
+} 
