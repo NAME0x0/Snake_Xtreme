@@ -4,7 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Snake Xtreme</title>
+    <meta name="description" content="A modern, feature-rich implementation of the classic Snake game with retro styling and enhanced gameplay mechanics.">
+    <meta name="keywords" content="snake game, retro game, javascript game, arcade game">
+    <meta property="og:title" content="Snake Xtreme">
+    <meta property="og:description" content="Play the classic Snake game with modern features and retro styling">
+    <meta property="og:type" content="website">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#000000">
+    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -13,36 +22,199 @@
             <h1>SNAKE XTREME</h1>
         </div>
         
-        <canvas id="game-canvas"></canvas>
-        
-        <div id="ui" class="game-ui">
-            <div id="score">Score: 0</div>
-            <div id="high-score">High Score: 0</div>
-            <div id="achievements">Achievements: 0/3</div>
-            <div id="coins">Coins: 0</div>
+        <!-- Main Menu -->
+        <div id="main-menu" class="menu-screen game-ui">
+            <div class="menu-buttons">
+                <button id="play-button" aria-label="Start New Game">Play Game</button>
+                <button id="shop-button" aria-label="Visit Snake Shop">Snake Shop</button>
+                <button id="settings-button" aria-label="Open Settings">Settings</button>
+                <button id="achievements-button" aria-label="View Achievements">Achievements</button>
+            </div>
+            <div id="game-modes" class="game-modes">
+                <h2>Game Modes</h2>
+                <div class="mode-buttons">
+                    <button id="classic-mode" class="mode-button active" aria-label="Classic Mode">Classic</button>
+                    <button id="no-walls-mode" class="mode-button" aria-label="No Walls Mode">No Walls</button>
+                    <button id="time-attack-mode" class="mode-button" aria-label="Time Attack Mode">Time Attack</button>
+                    <button id="maze-mode" class="mode-button" aria-label="Maze Mode">Maze</button>
+                </div>
+            </div>
+            <div id="difficulty-selector">
+                <h2>Difficulty</h2>
+                <div class="difficulty-buttons">
+                    <button id="easy-mode" class="difficulty-button" aria-label="Easy Difficulty">Easy</button>
+                    <button id="medium-mode" class="difficulty-button active" aria-label="Medium Difficulty">Medium</button>
+                    <button id="hard-mode" class="difficulty-button" aria-label="Hard Difficulty">Hard</button>
+                </div>
+            </div>
+            <div class="user-info">
+                <input type="text" id="username-input" placeholder="Enter your name" maxlength="15" aria-label="Enter username">
+                <div id="main-coins" class="coins"><i class="fas fa-coins"></i> <span>0</span></div>
+            </div>
         </div>
         
-        <div id="game-over-screen" style="display: none;" class="game-ui">
+        <!-- Snake Shop -->
+        <div id="snake-shop" class="menu-screen game-ui hidden">
+            <h2>Snake Shop</h2>
+            <div class="shop-coins"><i class="fas fa-coins"></i> <span>0</span></div>
+            <div class="shop-items">
+                <!-- Will be filled dynamically with snake colors from config.json -->
+            </div>
+            <button id="back-to-menu-from-shop" class="back-button" aria-label="Return to Main Menu">Back</button>
+        </div>
+        
+        <!-- Settings Menu -->
+        <div id="settings-menu" class="menu-screen game-ui hidden">
+            <h2>Settings</h2>
+            <div class="settings-options">
+                <div class="setting-item">
+                    <label for="particle-effects">Particle Effects</label>
+                    <select id="particle-effects" aria-label="Particle Effects Setting">
+                        <option value="high">High</option>
+                        <option value="medium" selected>Medium</option>
+                        <option value="low">Low</option>
+                        <option value="off">Off</option>
+                    </select>
+                </div>
+                <div class="setting-item">
+                    <label for="sound-volume">Sound Volume</label>
+                    <input type="range" id="sound-volume" min="0" max="100" value="70" aria-label="Sound Volume">
+                </div>
+                <div class="setting-item">
+                    <label for="grid-visibility">Grid Visibility</label>
+                    <select id="grid-visibility" aria-label="Grid Visibility Setting">
+                        <option value="on" selected>On</option>
+                        <option value="off">Off</option>
+                    </select>
+                </div>
+                <div class="setting-item">
+                    <label for="crt-effect">CRT Effect</label>
+                    <select id="crt-effect" aria-label="CRT Effect Setting">
+                        <option value="on" selected>On</option>
+                        <option value="off">Off</option>
+                    </select>
+                </div>
+                <div class="setting-item">
+                    <label>
+                        <input type="checkbox" id="high-contrast" aria-label="High Contrast Mode">
+                        High Contrast Mode
+                    </label>
+                </div>
+            </div>
+            <button id="back-to-menu-from-settings" class="back-button" aria-label="Return to Main Menu">Back</button>
+        </div>
+        
+        <!-- Achievements Screen -->
+        <div id="achievements-screen" class="menu-screen game-ui hidden">
+            <h2>Achievements</h2>
+            <div class="achievements-list">
+                <div class="achievement-item" id="achievement-score100">
+                    <div class="achievement-icon"><i class="fas fa-trophy"></i></div>
+                    <div class="achievement-info">
+                        <h3>Score 100</h3>
+                        <div class="achievement-progress">
+                            <div class="progress-bar" data-percentage="0"></div>
+                            <span class="progress-text">0/100</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="achievement-item" id="achievement-powerUp5">
+                    <div class="achievement-icon"><i class="fas fa-star"></i></div>
+                    <div class="achievement-info">
+                        <h3>Collect 5 Power-Ups</h3>
+                        <div class="achievement-progress">
+                            <div class="progress-bar" data-percentage="0"></div>
+                            <span class="progress-text">0/5</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="achievement-item" id="achievement-survive5Min">
+                    <div class="achievement-icon"><i class="fas fa-hourglass-half"></i></div>
+                    <div class="achievement-info">
+                        <h3>Survive 5 Minutes</h3>
+                        <div class="achievement-progress">
+                            <div class="progress-bar" data-percentage="0"></div>
+                            <span class="progress-text">0/300</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <button id="back-to-menu-from-achievements" class="back-button" aria-label="Return to Main Menu">Back</button>
+        </div>
+        
+        <!-- Game Canvas -->
+        <canvas id="game-canvas" aria-label="Snake Game Canvas" role="img" class="hidden"></canvas>
+        
+        <!-- Mobile Controls -->
+        <div id="mobile-controls" class="hidden">
+            <button id="up-button" aria-label="Move Up"><i class="fas fa-chevron-up"></i></button>
+            <div class="horizontal-controls">
+                <button id="left-button" aria-label="Move Left"><i class="fas fa-chevron-left"></i></button>
+                <button id="right-button" aria-label="Move Right"><i class="fas fa-chevron-right"></i></button>
+            </div>
+            <button id="down-button" aria-label="Move Down"><i class="fas fa-chevron-down"></i></button>
+        </div>
+        
+        <!-- Game UI -->
+        <div id="ui" class="game-ui hidden">
+            <div id="score" class="ui-element">Score: 0</div>
+            <div id="high-score" class="ui-element">High Score: 0</div>
+            <div id="achievements-count" class="ui-element">Achievements: 0/3</div>
+            <div id="coins" class="ui-element">Coins: 0</div>
+            <div id="timer" class="ui-element hidden">Time: 60</div>
+            <button id="pause-button" class="ui-element" aria-label="Pause Game"><i class="fas fa-pause"></i></button>
+        </div>
+        
+        <!-- Game Over Screen -->
+        <div id="game-over-screen" class="game-ui hidden">
             <h2>Game Over</h2>
             <p class="big-score">Score: <span id="final-score">0</span></p>
             <p>High Score: <span id="high-score-display">0</span></p>
             
+            <div class="share-buttons">
+                <button id="share-twitter" class="share-button" aria-label="Share on Twitter">
+                    <i class="fab fa-twitter"></i>
+                </button>
+                <button id="share-facebook" class="share-button" aria-label="Share on Facebook">
+                    <i class="fab fa-facebook"></i>
+                </button>
+                <button id="copy-score" class="share-button" aria-label="Copy Score">
+                    <i class="fas fa-copy"></i>
+                </button>
+            </div>
+            
             <div class="game-over-buttons">
-                <button id="restart-button">Restart</button>
-                <button id="leaderboard-button">Leaderboard</button>
-                <button id="menu-button">Main Menu</button>
+                <button id="restart-button" aria-label="Restart Game">Restart</button>
+                <button id="leaderboard-button" aria-label="View Leaderboard">Leaderboard</button>
+                <button id="menu-button" aria-label="Return to Main Menu">Main Menu</button>
             </div>
             
             <p class="restart-hint">Press SPACE to restart</p>
         </div>
         
-        <div id="leaderboard" style="display: none;" class="game-ui">
+        <!-- Leaderboard Screen -->
+        <div id="leaderboard" class="game-ui hidden">
             <h2>Leaderboard</h2>
             <ul id="leaderboard-list"></ul>
-            <button id="back-to-game">Back</button>
+            <button id="back-to-game" aria-label="Return to Game Over Screen">Back</button>
         </div>
+        
+        <!-- Pause Menu -->
+        <div id="pause-menu" class="game-ui hidden">
+            <h2>Paused</h2>
+            <div class="game-over-buttons">
+                <button id="resume-button" aria-label="Resume Game">Resume</button>
+                <button id="restart-from-pause-button" aria-label="Restart Game">Restart</button>
+                <button id="settings-from-pause-button" aria-label="Open Settings">Settings</button>
+                <button id="menu-from-pause-button" aria-label="Return to Main Menu">Main Menu</button>
+            </div>
+            <p class="restart-hint">Press ESC to resume</p>
+        </div>
+        
+        <div class="crt-effect"></div>
+        <div class="scanlines"></div>
     </div>
     
-    <script src="game.js"></script>
+    <script src="script.js" defer></script>
 </body>
 </html>

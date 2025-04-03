@@ -1,0 +1,39 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+---
+description: 
+globs: 
+alwaysApply: true
+---
+
+# Your rule content
+
+1. **Knowledge Base & Verification**:  
+   Always refer to *cursor_project_rules* as the definitive knowledge base and verify all contextual information before proceeding.
+
+2. **Feature Implementation & File Changes**:  
+   Strictly follow *implementation-plan.mdc* for feature development; perform file-by-file changes, provide real file links, and consolidate all edits in a single update.
+
+3. **Communication Guidelines**:  
+   Avoid apologies, unnecessary confirmations, summaries, feedback on understanding, and whitespace suggestions; do not discuss current implementations unless explicitly requested.
+
+4. **Code Integrity & Context Review**:  
+   Preserve existing code and functionalities, review context-generated file content before making modifications, and ensure all changes align with the provided project context.
+
+5. **Consistent Coding Standards**:  
+   Use explicit, descriptive variable names and adhere to the established coding style; prioritize performance improvements and maintain a security-first approach.
+
+6. **Testing & Error Management**:  
+   Implement robust error handling, logging, assertions, and comprehensive test coverage; integrate automated checks instead of manual verifications when functionality is affected.
+
+7. **Modular & Scalable Design**:  
+   Embrace modular design principles, ensure version compatibility, replace magic numbers with named constants, and consider all potential edge cases.
+
+8. **Debugging & Data Management**:  
+   Utilize SQL databases for data persistence (avoiding JSON for large datasets), ensure secure storage of sensitive data, clean up all temporary debugging artifacts, and prevent SQL injection by parameterizing queries.
+
+9. **Iterative Development & Automation**:  
+   When specifications are ambiguous, propose improvements that respect user direction; use immediate feedback loops, automated merge conflict resolution, and maintain clear version-controlled logs of changes.
